@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithm Visualizer | Final Ultimate</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        /* --- GLOBAL STYLES --- */
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .main-card {
+            background: white; border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            min-height: 750px; /* Tăng chiều cao để hiển thị đẹp hơn */
+            padding: 30px; margin-bottom: 50px;
+        }
+
+        /* --- INPUT PANELS --- */
+        .input-panel {
+            background: #e9ecef; padding: 20px; border-radius: 12px; margin-bottom: 25px;
+            display: none; animation: fadeIn 0.4s;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- 1. BINARY SEARCH STYLES --- */
+        .binary-wrapper { position: relative; display: flex; justify-content: center; gap: 15px; padding: 60px 0; width: 100%; }
+        .array-box {
+            width: 60px; height: 60px; border: 2px solid #e9ecef; border-radius: 12px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-weight: bold; font-size: 1.2rem; background: white; z-index: 2; transition: all 0.3s ease;
+        }
+        .array-box small { font-size: 0.7rem; color: #adb5bd; font-weight: normal; margin-top: -2px; }
+        .array-box.active { background-color: #e7f5ff; border-color: #0d6efd; color: #0d6efd; }
+        .array-box.mid { background-color: #ffc107; border-color: #ffc107; color: #212529; transform: scale(1.15); z-index: 10; box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3); }
+        .array-box.found { background-color: #198754; border-color: #198754; color: white; transform: scale(1.25); z-index: 11; box-shadow: 0 10px 20px rgba(25, 135, 84, 0.4); }
+        .array-box.dim { opacity: 0.2; filter: grayscale(100%); }
+        
+        .floating-arrow {
+            position: absolute; width: 60px; text-align: center; font-weight: bold; font-size: 1.5rem;
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); z-index: 20; left: 0; pointer-events: none;
+        }
+        .arrow-high { top: 0; color: #0d6efd; }
+        .arrow-low { bottom: 0; color: #dc3545; }
+        .arrow-label { display: block; font-size: 0.65rem; text-transform: uppercase; margin-top: -5px; }
+
+        /* --- 2. HUFFMAN TREE STYLES --- */
+        /* CSS cho cây thư mục (Tree structure) */
+        .tree ul { padding-top: 20px; position: relative; display: flex; justify-content: center; transition: all 0.5s; }
+        .tree li { float: left; text-align: center; list-style-type: none; position: relative; padding: 20px 5px 0 5px; transition: all 0.5s; }
+        
+        /* Các đường nối (Connectors) */
+        .tree li::before, .tree li::after { content: ''; position: absolute; top: 0; right: 50%; border-top: 2px solid #ccc; width: 50%; height: 20px; z-index: 1; }
+        .tree li::after { right: auto; left: 50%; border-left: 2px solid #ccc; }
+        .tree li:only-child::after, .tree li:only-child::before { display: none; }
+        .tree li:only-child { padding-top: 0; }
+        .tree li:first-child::before, .tree li:last-child::after { border: 0 none; }
+        .tree li:last-child::before { border-right: 2px solid #ccc; border-radius: 0 5px 0 0; }
+        .tree li:first-child::after { border-radius: 5px 0 0 0; }
+        .tree ul ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 2px solid #ccc; width: 0; height: 20px; z-index: 1; }
+        
+        /* Node Card */
+        .node-card {
+            border: 2px solid #adb5bd; display: inline-flex; flex-direction: column; justify-content: center; align-items: center;
+            text-decoration: none; background: white; border-radius: 50%; width: 60px; height: 60px;
+            transition: all 0.5s; position: relative; z-index: 5; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .node-card.internal { border-radius: 8px; width: 70px; height: 50px; background-color: #f8f9fa; border-style: dashed; }
+        .node-card.new { background-color: #fff3cd; border-color: #ffc107; transform: scale(1.2); animation: pulse 1s infinite; }
+        .node-val { font-weight: bold; font-size: 1.1em; color: #212529; }
+        .node-char { font-size: 0.8em; color: #6c757d; }
+        .leaf .node-val { color: #198754; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); } }
+
+        /* --- 3. FLOYD WARSHALL SPLIT LAYOUT --- */
+        .floyd-view { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; align-items: flex-start; width: 100%; }
+        
+        /* Cột trái: Bảng */
+        .floyd-left { flex: 1; min-width: 300px; display: flex; flex-direction: column; align-items: center; }
+        .floyd-table { border-collapse: separate; border-spacing: 4px; }
+        .floyd-table td, .floyd-table th { width: 40px; height: 40px; text-align: center; vertical-align: middle; border: 1px solid #dee2e6; border-radius: 6px; background: white; transition: background-color 0.3s; font-size: 0.9rem; }
+        .floyd-table th { background-color: #e9ecef; font-weight: bold; color: #495057; }
+        
+        .cell-k { background-color: #fff3cd !important; }
+        .cell-check { background-color: #d1e7dd !important; border: 2px solid #198754 !important; }
+        .cell-target { border: 2px solid #0d6efd !important; font-weight: bold; transform: scale(1.1); }
+        .cell-update { background-color: #dc3545 !important; color: white !important; }
+
+        /* Cột phải: Giải thích */
+        .floyd-right { flex: 1; min-width: 300px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .logic-card { text-align: left; }
+        .logic-title { font-size: 1.1rem; font-weight: bold; color: #495057; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
+        .logic-step { margin-bottom: 10px; font-size: 1rem; }
+        .math-eq { background: white; padding: 10px; border-radius: 8px; border: 1px dashed #adb5bd; font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #333; margin: 15px 0; text-align: center; }
+        .highlight-k { color: #d63384; font-weight: bold; }
+        .highlight-val { color: #0d6efd; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+    <div class="main-card">
+        <h2 class="text-center mb-4 text-primary fw-bold">🚀 Algorithm Visualizer: Interactive</h2>
+        
+        <div class="d-flex justify-content-center gap-3 mb-4">
+            <button class="btn btn-outline-primary fw-bold px-4" onclick="switchAlgo('binary')">Binary Search</button>
+            <button class="btn btn-outline-success fw-bold px-4" onclick="switchAlgo('huffman')">Huffman Tree</button>
+            <button class="btn btn-outline-danger fw-bold px-4" onclick="switchAlgo('floyd')">Floyd-Warshall</button>
+        </div>
+
+        <div id="input-binary" class="input-panel text-center">
+            <h5 class="mb-3 text-primary">Binary Search</h5>
+            <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
+                <input type="number" id="bin-size" class="form-control w-auto text-center" placeholder="Size" value="10" min="5" max="15">
+                <button class="btn btn-warning text-white fw-bold" onclick="generateBinary()">🎲 Sinh mảng</button>
+            </div>
+            <div class="mb-3">
+                <input type="text" id="bin-array" class="form-control text-center fw-bold text-secondary" readonly>
+            </div>
+            <div class="d-flex justify-content-center gap-2">
+                <input type="number" id="bin-key" class="form-control w-auto text-center" placeholder="Tìm số?">
+                <button class="btn btn-primary px-4 fw-bold" onclick="runAlgo('binary')">▶ CHẠY</button>
+            </div>
+        </div>
+
+        <div id="input-huffman" class="input-panel text-center">
+            <h5 class="mb-3 text-success">Huffman Coding</h5>
+            <div class="mb-3">
+                <label>Nhập chuỗi ký tự (Ví dụ: aaabbcdeee):</label>
+                <input type="text" id="huff-str" class="form-control text-center w-50 mx-auto fw-bold" value="hello world">
+            </div>
+            <button class="btn btn-success px-4 fw-bold" onclick="runAlgo('huffman')">▶ XÂY DỰNG CÂY</button>
+        </div>
+
+        <div id="input-floyd" class="input-panel text-center">
+            <h5 class="mb-3 text-danger">Floyd-Warshall (Ngắn nhất mọi cặp đỉnh)</h5>
+            <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
+                <label class="fw-bold">Kích thước NxN:</label>
+                <input type="number" id="floyd-size" class="form-control text-center fw-bold" style="width: 70px;" value="4" min="3" max="8" onchange="generateFloyd()">
+                <button class="btn btn-warning text-white fw-bold" onclick="generateFloyd()">🎲 Sinh Matrix</button>
+            </div>
+            <div class="mb-3 text-muted fst-italic small" id="floyd-preview">(Ma trận hiển thị tại đây)</div>
+            <button class="btn btn-danger px-4 fw-bold" onclick="runAlgo('floyd')">▶ TÌM ĐƯỜNG</button>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-3 mb-3 border">
+            <div>
+                <span class="badge bg-secondary me-2" id="algoLabel">NONE</span>
+                <span class="fw-bold text-dark" id="msgBox">Vui lòng chọn thuật toán.</span>
+            </div>
+            <span class="badge bg-primary fs-6" id="stepBadge">0 / 0</span>
+        </div>
+
+        <div class="visual-area border rounded-3 d-flex justify-content-center align-items-center bg-white" 
+             style="min-height: 500px; overflow: auto; position: relative; padding: 20px;">
+            <div id="visualContainer" style="width: 100%; text-align: center;">
+                <div class="text-muted fst-italic">Khu vực hiển thị đồ họa</div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4 controls" style="display:none;">
+            <button class="btn btn-secondary rounded-pill px-4 me-2" onclick="prevStep()">⬅ Quay lại</button>
+            <button class="btn btn-warning rounded-pill px-4 me-2 text-white fw-bold" onclick="toggleAuto()">⏯ Tự động</button>
+            <button class="btn btn-primary rounded-pill px-4" onclick="nextStep()">Tiếp theo ➡</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- VARIABLES ---
+    let steps = [];
+    let currentStep = 0;
+    let currentAlgo = '';
+    let autoInterval = null;
+    let binData = [];
+    let isBinaryInitialized = false;
+    let currentFloydMatrix = "";
+
+    // --- UI SWITCHING ---
+    function switchAlgo(algo) {
+        document.querySelectorAll('.input-panel').forEach(el => el.style.display = 'none');
+        document.getElementById(`input-${algo}`).style.display = 'block';
+        document.getElementById('algoLabel').innerText = algo.toUpperCase();
+        document.getElementById('visualContainer').innerHTML = '<div class="text-muted">Sẵn sàng nhập liệu.</div>';
+        document.querySelector('.controls').style.display = 'none';
+        
+        if (algo === 'binary') generateBinary();
+        if (algo === 'floyd') generateFloyd();
+    }
+
+    // --- GENERATORS ---
+    function generateBinary() {
+        const size = parseInt(document.getElementById('bin-size').value) || 10;
+        let arr = [];
+        for(let i=0; i<size; i++) arr.push(Math.floor(Math.random() * 99) + 1);
+        arr.sort((a,b) => a - b);
+        document.getElementById('bin-array').value = arr.join(',');
+        document.getElementById('bin-key').value = arr[Math.floor(Math.random() * size)];
+    }
+
+    function generateFloyd() {
+        let size = parseInt(document.getElementById('floyd-size').value);
+        if (size < 3) size = 3; 
+        if (size > 8) { size = 8; document.getElementById('floyd-size').value = 8; }
+        
+        let matrix = [];
+        for(let i=0; i<size; i++) {
+            for(let j=0; j<size; j++) {
+                if (i === j) matrix.push(0);
+                else {
+                    if (Math.random() < 0.4) matrix.push(999);
+                    else matrix.push(Math.floor(Math.random() * 20) + 1);
+                }
+            }
+        }
+        currentFloydMatrix = matrix.join(',');
+        document.getElementById('floyd-preview').innerText = `Matrix ${size}x${size}: ` + currentFloydMatrix.substring(0, 40) + "...";
+    }
+
+    // --- RUN ALGO ---
+    async function runAlgo(algo) {
+        currentAlgo = algo;
+        stopAuto();
+        isBinaryInitialized = false;
+        
+        let payload = {};
+        if (algo === 'binary') {
+            payload = {
+                size: document.getElementById('bin-size').value,
+                key: document.getElementById('bin-key').value,
+                arr_str: document.getElementById('bin-array').value
+            };
+        } else if (algo === 'huffman') {
+            const str = document.getElementById('huff-str').value;
+            let counts = {};
+            for (let char of str) counts[char] = (counts[char] || 0) + 1;
+            // Chuyển object đếm thành danh sách CSV
+            payload = { chars: Object.keys(counts).join(','), freqs: Object.values(counts).join(',') };
+        } else if (algo === 'floyd') {
+            if (!currentFloydMatrix) generateFloyd();
+            payload = { matrix: currentFloydMatrix, size: document.getElementById('floyd-size').value };
+        }
+
+        document.getElementById('msgBox').innerText = "Đang xử lý...";
+        try {
+            const res = await fetch(`/run/${algo}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            
+            if (data.error) throw new Error(data.details || "Lỗi");
+            
+            steps = data;
+            if (algo === 'binary' && steps.length > 0 && steps[0].data) binData = steps[0].data;
+
+            currentStep = 0;
+            document.querySelector('.controls').style.display = 'block';
+            render();
+        } catch (e) {
+            alert("Lỗi: " + e);
+        }
+    }
+
+    // --- RENDER DISPATCHER ---
+    function render() {
+        if (!steps.length) return;
+        const s = steps[currentStep];
+        document.getElementById('msgBox').innerText = s.msg;
+        document.getElementById('stepBadge').innerText = `${currentStep + 1} / ${steps.length}`;
+        const container = document.getElementById('visualContainer');
+
+        if (currentAlgo === 'binary') renderBinary(container, s);
+        else if (currentAlgo === 'huffman') renderHuffman(container, s);
+        else if (currentAlgo === 'floyd') renderFloyd(container, s);
+    }
+
+    // --- 1. RENDER BINARY ---
+    function renderBinary(container, s) {
+        if (!isBinaryInitialized) {
+            container.innerHTML = '';
+            const wrapper = document.createElement('div'); wrapper.className = 'binary-wrapper';
+            binData.forEach((val, i) => {
+                const box = document.createElement('div'); box.className = 'array-box'; box.id = `bin-box-${i}`;
+                box.innerHTML = `<div>${val}</div><small>${i}</small>`;
+                wrapper.appendChild(box);
+            });
+            wrapper.innerHTML += `<div id="arr-high" class="floating-arrow arrow-high">⬇<span class="arrow-label">High</span></div><div id="arr-low" class="floating-arrow arrow-low">⬆<span class="arrow-label">Low</span></div>`;
+            container.appendChild(wrapper);
+            isBinaryInitialized = true;
+        }
+
+        const setArr = (id, idx) => {
+            const el = document.getElementById(id);
+            const t = document.getElementById(`bin-box-${idx}`);
+            if (idx !== -1 && t) {
+                el.style.transform = `translateX(${t.offsetLeft}px)`; el.style.opacity = '1';
+            } else el.style.opacity = '0';
+        };
+        setArr('arr-low', s.low); setArr('arr-high', s.high);
+
+        binData.forEach((_, i) => {
+            const b = document.getElementById(`bin-box-${i}`); b.className = 'array-box';
+            if (s.low !== -1 && s.high !== -1) {
+                if (i < s.low || i > s.high) b.classList.add('dim'); else b.classList.add('active');
+            }
+            if (i === s.mid) { if (s.found) b.classList.add('found'); else b.classList.add('mid'); }
+        });
+    }
+
+    // --- 2. RENDER HUFFMAN (UPDATED & IMPROVED) ---
+    function renderHuffman(container, s) {
+        const roots = s.nodes.filter(n => n.active === 1).sort((a,b) => a.freq - b.freq);
+        container.innerHTML = '';
+        
+        // Tạo Wrapper Flexbox
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.flexWrap = 'wrap';
+        wrapper.style.justifyContent = 'center';
+        wrapper.style.gap = '30px';
+        wrapper.style.width = '100%';
+
+        // --- Cột 1: Vẽ Cây ---
+        const treeArea = document.createElement('div');
+        treeArea.className = 'tree';
+        const ul = document.createElement('ul');
+
+        const create = (id) => {
+            const n = s.nodes.find(x => x.id === id); if (!n) return null;
+            const li = document.createElement('li');
+            const isLeaf = (n.left === -1 && n.right === -1);
+            
+            // Hiển thị code bit (nếu có) trên node lá
+            let codeDisplay = '';
+            if (isLeaf && n.code) codeDisplay = `<div style="font-size:0.75em; color:#dc3545; font-weight:bold; margin-top:-5px">${n.code}</div>`;
+
+            li.innerHTML = `<a href="#" class="node-card ${isLeaf ? 'leaf' : 'internal'} ${n.is_new ? 'new' : ''}">
+                                <span class="${isLeaf ? 'node-val' : 'node-char'}">${isLeaf ? n.name : 'SUM'}</span>
+                                <span class="${isLeaf ? 'node-char' : 'node-val'}">${n.freq}</span>
+                                ${codeDisplay}
+                            </a>`;
+            if (!isLeaf) {
+                const sub = document.createElement('ul');
+                if (n.left !== -1) sub.appendChild(create(n.left));
+                if (n.right !== -1) sub.appendChild(create(n.right));
+                li.appendChild(sub);
+            }
+            return li;
+        };
+        roots.forEach(r => ul.appendChild(create(r.id)));
+        treeArea.appendChild(ul);
+        wrapper.appendChild(treeArea);
+
+        // --- Cột 2: Bảng Mã (Chỉ hiện khi có code) ---
+        // Lọc các node lá có code bit
+        const leaves = s.nodes.filter(n => n.left === -1 && n.right === -1 && n.code && n.code !== "");
+        
+        if (leaves.length > 0) {
+            const tableArea = document.createElement('div');
+            tableArea.style.minWidth = '250px';
+            tableArea.innerHTML = `
+                <div class="card shadow-sm border-success">
+                    <div class="card-header bg-success text-white fw-bold text-center">Bảng Mã Hóa</div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped mb-0 text-center">
+                            <thead class="table-light"><tr><th>Ký tự</th><th>Tần suất</th><th>Mã Bit</th></tr></thead>
+                            <tbody>
+                                ${leaves.map(l => `<tr>
+                                    <td class="fw-bold text-primary">${l.name}</td>
+                                    <td>${l.freq}</td>
+                                    <td class="text-danger fw-bold font-monospace">${l.code}</td>
+                                </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+            wrapper.appendChild(tableArea);
+        }
+
+        container.appendChild(wrapper);
+    }
+
+    // --- 3. RENDER FLOYD (SPLIT VIEW) ---
+    function renderFloyd(container, s) {
+        container.innerHTML = '';
+        const layout = document.createElement('div'); layout.className = 'floyd-view';
+        
+        // LEFT: Matrix
+        const leftPanel = document.createElement('div'); leftPanel.className = 'floyd-left';
+        const tbl = document.createElement('table'); tbl.className = 'floyd-table';
+        let h = '<thead><tr><th></th>'; for(let k=0; k<s.matrix.length; k++) h += `<th class="${s.k===k?'cell-k':''}">${k}</th>`;
+        tbl.innerHTML = h + '</tr></thead><tbody>';
+        
+        let val_ik = '?', val_kj = '?', val_ij = '?', val_sum = '?';
+
+        s.matrix.forEach((row, i) => {
+            const tr = document.createElement('tr'); tr.innerHTML = `<th class="${s.k===i?'cell-k':''}">${i}</th>`;
+            row.forEach((v, j) => {
+                const td = document.createElement('td'); 
+                const disp = (v === 999) ? '∞' : v;
+                td.innerText = disp;
+                if (s.k !== -1) {
+                    if (i === s.k || j === s.k) td.classList.add('cell-k');
+                    if (i === s.i && j === s.k) { td.classList.add('cell-check'); val_ik = disp; }
+                    if (i === s.k && j === s.j) { td.classList.add('cell-check'); val_kj = disp; }
+                    if (i === s.i && j === s.j) { td.classList.add('cell-target'); val_ij = disp; }
+                }
+                if (i === s.high_i && j === s.high_j) { td.classList.add('cell-update'); val_ij = disp; }
+                tr.appendChild(td);
+            });
+            tbl.appendChild(tr).parentNode.appendChild(tr);
+        });
+        leftPanel.appendChild(tbl);
+
+        // RIGHT: Logic Explanation
+        const rightPanel = document.createElement('div'); rightPanel.className = 'floyd-right';
+        if (s.k === -1) {
+            rightPanel.innerHTML = `<div class="logic-card"><div class="logic-title">⚡ Khởi tạo</div><p>Ma trận khoảng cách ban đầu.</p><ul><li><b>0</b>: Đến chính nó.</li><li><b>∞</b>: Chưa có đường đi.</li></ul></div>`;
+        } else {
+            let sumRaw = (val_ik === '∞' || val_kj === '∞') ? Infinity : (parseInt(val_ik) + parseInt(val_kj));
+            let sumDisp = (sumRaw === Infinity) ? '∞' : sumRaw;
+            let isUpdate = (s.high_i !== -1);
+            
+            rightPanel.innerHTML = `
+                <div class="logic-card">
+                    <div class="logic-title">🔍 Giải thích Bước ${s.step}</div>
+                    <div class="logic-step">1. Đỉnh trung gian: <b class="highlight-k">K = ${s.k}</b></div>
+                    <div class="logic-step">2. Tìm đường: <b>${s.i} ➝ ${s.j}</b></div>
+                    <div class="math-eq">D[${s.i}][${s.j}] = min( D[${s.i}][${s.j}], <span class="highlight-k">D[${s.i}][${s.k}] + D[${s.k}][${s.j}]</span> )</div>
+                    <div class="logic-step mt-3">
+                        👉 <b>So sánh:</b>
+                        <ul>
+                            <li>Trực tiếp: <b>${val_ij}</b></li>
+                            <li>Qua K: <b>${val_ik} + ${val_kj} = ${sumDisp}</b></li>
+                        </ul>
+                    </div>
+                    <div class="alert ${isUpdate ? 'alert-success' : 'alert-secondary'} mt-3 p-2 text-center small">
+                        ${isUpdate ? `✅ <b>CẬP NHẬT!</b><br>${sumDisp} < ${val_ij}` : `❌ <b>Giữ nguyên.</b>`}
+                    </div>
+                </div>`;
+        }
+
+        layout.appendChild(leftPanel); layout.appendChild(rightPanel);
+        container.appendChild(layout);
+    }
+
+    // --- CONTROLS ---
+    function nextStep() { if (currentStep < steps.length - 1) { currentStep++; render(); } }
+    function prevStep() { if (currentStep > 0) { currentStep--; render(); } }
+    function toggleAuto() { if (autoInterval) { clearInterval(autoInterval); autoInterval = null; } else autoInterval = setInterval(nextStep, 1000); }
+    function stopAuto() { clearInterval(autoInterval); autoInterval = null; }
+</script>
+</body>
+</html>
