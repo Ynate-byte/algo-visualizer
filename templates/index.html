@@ -9,26 +9,26 @@
     <style>
         /* --- GLOBAL STYLES --- */
         body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .main-card {
-            background: white; border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            min-height: 750px; /* Tăng chiều cao để hiển thị đẹp hơn */
-            padding: 30px; margin-bottom: 50px;
+        .main-card { 
+            background: white; border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+            min-height: 800px; 
+            padding: 30px; margin-bottom: 50px; 
         }
 
         /* --- INPUT PANELS --- */
-        .input-panel {
-            background: #e9ecef; padding: 20px; border-radius: 12px; margin-bottom: 25px;
-            display: none; animation: fadeIn 0.4s;
+        .input-panel { 
+            background: #e9ecef; padding: 20px; border-radius: 12px; margin-bottom: 25px; 
+            display: none; animation: fadeIn 0.4s; 
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
         /* --- 1. BINARY SEARCH STYLES --- */
         .binary-wrapper { position: relative; display: flex; justify-content: center; gap: 15px; padding: 60px 0; width: 100%; }
-        .array-box {
-            width: 60px; height: 60px; border: 2px solid #e9ecef; border-radius: 12px;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            font-weight: bold; font-size: 1.2rem; background: white; z-index: 2; transition: all 0.3s ease;
+        .array-box { 
+            width: 60px; height: 60px; border: 2px solid #e9ecef; border-radius: 12px; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            font-weight: bold; font-size: 1.2rem; background: white; z-index: 2; transition: all 0.3s ease; 
         }
         .array-box small { font-size: 0.7rem; color: #adb5bd; font-weight: normal; margin-top: -2px; }
         .array-box.active { background-color: #e7f5ff; border-color: #0d6efd; color: #0d6efd; }
@@ -36,16 +36,16 @@
         .array-box.found { background-color: #198754; border-color: #198754; color: white; transform: scale(1.25); z-index: 11; box-shadow: 0 10px 20px rgba(25, 135, 84, 0.4); }
         .array-box.dim { opacity: 0.2; filter: grayscale(100%); }
         
-        .floating-arrow {
-            position: absolute; width: 60px; text-align: center; font-weight: bold; font-size: 1.5rem;
-            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); z-index: 20; left: 0; pointer-events: none;
+        .floating-arrow { 
+            position: absolute; width: 60px; text-align: center; font-weight: bold; font-size: 1.5rem; 
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); z-index: 20; left: 0; pointer-events: none; 
         }
         .arrow-high { top: 0; color: #0d6efd; }
         .arrow-low { bottom: 0; color: #dc3545; }
         .arrow-label { display: block; font-size: 0.65rem; text-transform: uppercase; margin-top: -5px; }
 
         /* --- 2. HUFFMAN TREE STYLES --- */
-        /* CSS cho cây thư mục (Tree structure) */
+        /* CSS cho cấu trúc cây */
         .tree ul { padding-top: 20px; position: relative; display: flex; justify-content: center; transition: all 0.5s; }
         .tree li { float: left; text-align: center; list-style-type: none; position: relative; padding: 20px 5px 0 5px; transition: all 0.5s; }
         
@@ -59,26 +59,38 @@
         .tree li:first-child::after { border-radius: 5px 0 0 0; }
         .tree ul ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 2px solid #ccc; width: 0; height: 20px; z-index: 1; }
         
-        /* Node Card */
-        .node-card {
-            border: 2px solid #adb5bd; display: inline-flex; flex-direction: column; justify-content: center; align-items: center;
-            text-decoration: none; background: white; border-radius: 50%; width: 60px; height: 60px;
-            transition: all 0.5s; position: relative; z-index: 5; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        /* Node Styling */
+        .node-card { 
+            border: 2px solid #198754; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; 
+            text-decoration: none; background: white; border-radius: 50%; width: 60px; height: 60px; 
+            transition: all 0.5s; position: relative; z-index: 5; box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
         }
-        .node-card.internal { border-radius: 8px; width: 70px; height: 50px; background-color: #f8f9fa; border-style: dashed; }
-        .node-card.new { background-color: #fff3cd; border-color: #ffc107; transform: scale(1.2); animation: pulse 1s infinite; }
-        .node-val { font-weight: bold; font-size: 1.1em; color: #212529; }
+        /* Node trung gian (SUM) */
+        .node-card.internal { 
+            border-radius: 8px; width: 70px; height: 50px; 
+            background-color: #343a40; border-color: #343a40; border-style: dashed; color: white; 
+        }
+        /* Node mới tạo */
+        .node-card.new { 
+            background-color: #fff3cd; border-color: #ffc107; transform: scale(1.2); animation: pulse 1s infinite; color: black; 
+        }
+        .node-val { font-weight: bold; font-size: 1.1em; }
         .node-char { font-size: 0.8em; color: #6c757d; }
+        .internal .node-char { color: #adb5bd; } /* Màu chữ cho node SUM */
         .leaf .node-val { color: #198754; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); } }
 
-        /* --- 3. FLOYD WARSHALL SPLIT LAYOUT --- */
+        /* --- 3. FLOYD WARSHALL STYLES --- */
         .floyd-view { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; align-items: flex-start; width: 100%; }
         
         /* Cột trái: Bảng */
         .floyd-left { flex: 1; min-width: 300px; display: flex; flex-direction: column; align-items: center; }
         .floyd-table { border-collapse: separate; border-spacing: 4px; }
-        .floyd-table td, .floyd-table th { width: 40px; height: 40px; text-align: center; vertical-align: middle; border: 1px solid #dee2e6; border-radius: 6px; background: white; transition: background-color 0.3s; font-size: 0.9rem; }
+        .floyd-table td, .floyd-table th { 
+            width: 45px; height: 45px; text-align: center; vertical-align: middle; 
+            border: 1px solid #dee2e6; border-radius: 6px; background: white; 
+            transition: background-color 0.3s; font-size: 0.9rem; 
+        }
         .floyd-table th { background-color: #e9ecef; font-weight: bold; color: #495057; }
         
         .cell-k { background-color: #fff3cd !important; }
@@ -87,11 +99,19 @@
         .cell-update { background-color: #dc3545 !important; color: white !important; }
 
         /* Cột phải: Giải thích */
-        .floyd-right { flex: 1; min-width: 300px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .floyd-right { 
+            flex: 1; min-width: 300px; background: #f8f9fa; 
+            border: 1px solid #dee2e6; border-radius: 12px; padding: 20px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+        }
         .logic-card { text-align: left; }
         .logic-title { font-size: 1.1rem; font-weight: bold; color: #495057; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
         .logic-step { margin-bottom: 10px; font-size: 1rem; }
-        .math-eq { background: white; padding: 10px; border-radius: 8px; border: 1px dashed #adb5bd; font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #333; margin: 15px 0; text-align: center; }
+        .math-eq { 
+            background: white; padding: 10px; border-radius: 8px; border: 1px dashed #adb5bd; 
+            font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #333; 
+            margin: 15px 0; text-align: center; 
+        }
         .highlight-k { color: #d63384; font-weight: bold; }
         .highlight-val { color: #0d6efd; font-weight: bold; }
 
@@ -127,8 +147,8 @@
         <div id="input-huffman" class="input-panel text-center">
             <h5 class="mb-3 text-success">Huffman Coding</h5>
             <div class="mb-3">
-                <label>Nhập chuỗi ký tự (Ví dụ: aaabbcdeee):</label>
-                <input type="text" id="huff-str" class="form-control text-center w-50 mx-auto fw-bold" value="hello world">
+                <label>Nhập chuỗi ký tự (Ví dụ: ABACABAD):</label>
+                <input type="text" id="huff-str" class="form-control text-center w-50 mx-auto fw-bold" value="ABACABAD">
             </div>
             <button class="btn btn-success px-4 fw-bold" onclick="runAlgo('huffman')">▶ XÂY DỰNG CÂY</button>
         </div>
@@ -235,7 +255,6 @@
             const str = document.getElementById('huff-str').value;
             let counts = {};
             for (let char of str) counts[char] = (counts[char] || 0) + 1;
-            // Chuyển object đếm thành danh sách CSV
             payload = { chars: Object.keys(counts).join(','), freqs: Object.values(counts).join(',') };
         } else if (algo === 'floyd') {
             if (!currentFloydMatrix) generateFloyd();
@@ -310,12 +329,12 @@
         });
     }
 
-    // --- 2. RENDER HUFFMAN (UPDATED & IMPROVED) ---
+    // --- 2. RENDER HUFFMAN (COMPLETE) ---
     function renderHuffman(container, s) {
         const roots = s.nodes.filter(n => n.active === 1).sort((a,b) => a.freq - b.freq);
         container.innerHTML = '';
         
-        // Tạo Wrapper Flexbox
+        // Wrapper chính
         const wrapper = document.createElement('div');
         wrapper.style.display = 'flex';
         wrapper.style.flexWrap = 'wrap';
@@ -323,7 +342,7 @@
         wrapper.style.gap = '30px';
         wrapper.style.width = '100%';
 
-        // --- Cột 1: Vẽ Cây ---
+        // --- Cột 1: Cây Huffman ---
         const treeArea = document.createElement('div');
         treeArea.className = 'tree';
         const ul = document.createElement('ul');
@@ -333,12 +352,13 @@
             const li = document.createElement('li');
             const isLeaf = (n.left === -1 && n.right === -1);
             
-            // Hiển thị code bit (nếu có) trên node lá
+            // Hiển thị mã bit nếu có
             let codeDisplay = '';
             if (isLeaf && n.code) codeDisplay = `<div style="font-size:0.75em; color:#dc3545; font-weight:bold; margin-top:-5px">${n.code}</div>`;
 
+            // HTML cho Node
             li.innerHTML = `<a href="#" class="node-card ${isLeaf ? 'leaf' : 'internal'} ${n.is_new ? 'new' : ''}">
-                                <span class="${isLeaf ? 'node-val' : 'node-char'}">${isLeaf ? n.name : 'SUM'}</span>
+                                <span class="${isLeaf ? 'node-val' : 'node-char'}">${n.name}</span>
                                 <span class="${isLeaf ? 'node-char' : 'node-val'}">${n.freq}</span>
                                 ${codeDisplay}
                             </a>`;
@@ -354,16 +374,24 @@
         treeArea.appendChild(ul);
         wrapper.appendChild(treeArea);
 
-        // --- Cột 2: Bảng Mã (Chỉ hiện khi có code) ---
-        // Lọc các node lá có code bit
+        // --- Cột 2: Bảng Tính Toán (Chỉ hiện khi đã sinh mã bit) ---
         const leaves = s.nodes.filter(n => n.left === -1 && n.right === -1 && n.code && n.code !== "");
         
         if (leaves.length > 0) {
+            let totalBits = 0;
+            let formula = [];
+            
+            leaves.forEach(l => {
+                let bits = l.freq * l.code.length;
+                totalBits += bits;
+                formula.push(`${l.freq}×${l.code.length}`);
+            });
+
             const tableArea = document.createElement('div');
             tableArea.style.minWidth = '250px';
             tableArea.innerHTML = `
                 <div class="card shadow-sm border-success">
-                    <div class="card-header bg-success text-white fw-bold text-center">Bảng Mã Hóa</div>
+                    <div class="card-header bg-success text-white fw-bold text-center">Bảng Mã & Hiệu Suất</div>
                     <div class="card-body p-0">
                         <table class="table table-striped mb-0 text-center">
                             <thead class="table-light"><tr><th>Ký tự</th><th>Tần suất</th><th>Mã Bit</th></tr></thead>
@@ -375,6 +403,11 @@
                                 </tr>`).join('')}
                             </tbody>
                         </table>
+                    </div>
+                    <div class="card-footer bg-light">
+                        <div class="small fw-bold text-muted">Tính tổng Bit:</div>
+                        <div class="text-center small font-monospace">${formula.join(' + ')}</div>
+                        <h5 class="text-center text-success fw-bold mt-2">= ${totalBits} Bits</h5>
                     </div>
                 </div>`;
             wrapper.appendChild(tableArea);
@@ -429,7 +462,7 @@
                     <div class="logic-title">🔍 Giải thích Bước ${s.step}</div>
                     <div class="logic-step">1. Đỉnh trung gian: <b class="highlight-k">K = ${s.k}</b></div>
                     <div class="logic-step">2. Tìm đường: <b>${s.i} ➝ ${s.j}</b></div>
-                    <div class="math-eq">D[${s.i}][${s.j}] = min( D[${s.i}][${s.j}], <span class="highlight-k">D[${s.i}][${s.k}] + D[${s.k}][${s.j}]</span> )</div>
+                    <div class="math-eq">D[${s.i}][${s.j}] = min( ${val_ij}, <span class="highlight-k">D[${s.i}][${s.k}] + D[${s.k}][${s.j}]</span> )</div>
                     <div class="logic-step mt-3">
                         👉 <b>So sánh:</b>
                         <ul>

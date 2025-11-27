@@ -3,11 +3,19 @@
 #include <string.h>
 #define INF 999
 int N=4;
+
 void print_matrix(int step, int **dist, int k, int ci, int cj, int hi, int hj, char* msg) {
     if (step > 0) printf(",\n");
     printf("{\"step\": %d, \"k\": %d, \"i\": %d, \"j\": %d, \"high_i\": %d, \"high_j\": %d, \"msg\": \"%s\", \"matrix\": [", step, k, ci, cj, hi, hj, msg);
-    for(int i=0; i<N; i++) { printf("["); for(int j=0; j<N; j++) { printf("%d", dist[i][j]); if(j<N-1) printf(","); } printf("]"); if(i<N-1) printf(","); } printf("]}");
+    for(int i=0; i<N; i++) { 
+        printf("["); 
+        for(int j=0; j<N; j++) { printf("%d", dist[i][j]); if(j<N-1) printf(","); } 
+        printf("]"); 
+        if(i<N-1) printf(","); 
+    } 
+    printf("]}");
 }
+
 int main(int argc, char *argv[]) {
     if(argc>=2) N=atoi(argv[1]);
     int **dist = (int **)malloc(N * sizeof(int *));

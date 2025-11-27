@@ -37,18 +37,17 @@ int main(int argc, char *argv[]) {
     for(int i=0; i<100; i++) strcpy(nodes[i].code, "");
 
     if (argc == 3) {
-        // --- SỬA LỖI STRTOK TẠI ĐÂY ---
-        // Bước 1: Đọc danh sách ký tự trước
         char *token_char = strtok(argv[1], ",");
         while (token_char != NULL) {
             nodes[n].id = n;
             strcpy(nodes[n].name, token_char);
+            nodes[n].freq = 0; // Tạm thời
             nodes[n].is_active=1; nodes[n].left=-1; nodes[n].right=-1; nodes[n].is_new=0;
             n++;
             token_char = strtok(NULL, ",");
         }
-
-        // Bước 2: Đọc danh sách tần suất sau
+        
+        // Reset strtok context bằng cách gọi lại trên chuỗi mới hoàn toàn
         int i = 0;
         char *token_freq = strtok(argv[2], ",");
         while (token_freq != NULL && i < n) {
@@ -57,8 +56,7 @@ int main(int argc, char *argv[]) {
             token_freq = strtok(NULL, ",");
         }
     } else {
-        // Dữ liệu mẫu nếu không có input
-        char c[]={'a','b','c','d','e','f'}; int f[]={5,9,12,13,16,45}; n=6;
+        char c[]={'A','B','C','D'}; int f[]={4, 2, 1, 1}; n=4;
         for(int i=0;i<n;i++){
             nodes[i].id=i; sprintf(nodes[i].name,"%c",c[i]); nodes[i].freq=f[i]; 
             nodes[i].is_active=1; nodes[i].left=-1; nodes[i].right=-1; nodes[i].is_new=0;
@@ -78,7 +76,9 @@ int main(int argc, char *argv[]) {
         
         if(m1!=-1 && m2!=-1) {
             int newIdx=total; nodes[newIdx].id=newIdx;
-            sprintf(nodes[newIdx].name, "%d", nodes[m1].freq+nodes[m2].freq);
+            // --- SỬA TẠI ĐÂY: Đặt tên node gộp là "SUM" ---
+            strcpy(nodes[newIdx].name, "SUM"); 
+            
             nodes[newIdx].freq=nodes[m1].freq+nodes[m2].freq;
             nodes[newIdx].is_active=1; nodes[newIdx].left=m1; nodes[newIdx].right=m2; nodes[newIdx].is_new=1;
             strcpy(nodes[newIdx].code, ""); 
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
             nodes[m1].is_active=0; nodes[m2].is_active=0;
             total++; active_count--; 
             
-            char msg[100]; sprintf(msg, "Gộp node %s (%d) và %s (%d)", nodes[m1].name, nodes[m1].freq, nodes[m2].name, nodes[m2].freq);
+            char msg[100]; sprintf(msg, "Gộp node %s(%d) và %s(%d) thành SUM(%d)", nodes[m1].name, nodes[m1].freq, nodes[m2].name, nodes[m2].freq, nodes[newIdx].freq);
             print_state(step++, nodes, total, msg);
         } else break; 
     }
