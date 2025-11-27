@@ -395,19 +395,17 @@
         container.appendChild(wrapper);
     }
 
-    // --- 3. RENDER FLOYD (ĐÃ SỬA: HIỂN THỊ A, B, C...) ---
+    // --- 3. RENDER FLOYD (FIX: Lấy giá trị cũ để so sánh) ---
     function renderFloyd(container, s) {
         container.innerHTML = '';
         const layout = document.createElement('div'); layout.className = 'floyd-view';
         
-        // Hàm chuyển đổi số sang chữ cái (0->A, 1->B...)
         const toChar = (n) => String.fromCharCode(65 + n);
 
         // LEFT: Matrix
         const leftPanel = document.createElement('div'); leftPanel.className = 'floyd-left';
         const tbl = document.createElement('table'); tbl.className = 'floyd-table';
         
-        // Header (A, B, C...)
         let h = '<thead><tr><th></th>'; 
         for(let k=0; k<s.matrix.length; k++) h += `<th class="${s.k===k?'cell-k':''}">${toChar(k)}</th>`;
         tbl.innerHTML = h + '</tr></thead><tbody>';
@@ -415,7 +413,6 @@
         let val_ik = '?', val_kj = '?', val_ij = '?', val_sum = '?';
 
         s.matrix.forEach((row, i) => {
-            // Cột đầu tiên của mỗi dòng (A, B, C...)
             const tr = document.createElement('tr'); 
             tr.innerHTML = `<th class="${s.k===i?'cell-k':''}">${toChar(i)}</th>`;
             
@@ -436,7 +433,6 @@
         });
         leftPanel.appendChild(tbl);
 
-        // RIGHT: Logic Explanation
         const rightPanel = document.createElement('div'); rightPanel.className = 'floyd-right';
         if (s.k === -1) {
             rightPanel.innerHTML = `<div class="logic-card"><div class="logic-title">⚡ Khởi tạo</div><p>Ma trận khoảng cách ban đầu.</p><ul><li><b>0</b>: Đến chính nó.</li><li><b>∞</b>: Chưa có đường đi.</li></ul></div>`;
@@ -445,22 +441,34 @@
             let sumDisp = (sumRaw === Infinity) ? '∞' : sumRaw;
             let isUpdate = (s.high_i !== -1);
             
-            // Hiển thị logic dùng chữ cái (A, B, K...)
+            let oldValDisp = val_ij; // Mặc định là giá trị hiện tại
+            if (isUpdate && currentStep > 0) {
+                // Nếu đây là bước cập nhật, hãy nhìn lại ma trận ở bước trước đó (step - 1)
+                try {
+                    const prevMatrix = steps[currentStep - 1].matrix;
+                    const prevVal = prevMatrix[s.i][s.j]; // Lấy giá trị tại vị trí i, j cũ
+                    oldValDisp = (prevVal === 999) ? '∞' : prevVal;
+                } catch(e) { console.log(e); }
+            }
+
             rightPanel.innerHTML = `
                 <div class="logic-card">
                     <div class="logic-title">Giải thích Bước ${s.step}</div>
                     <div class="logic-step">1. Đỉnh trung gian: <b class="highlight-k">K = ${toChar(s.k)}</b></div>
                     <div class="logic-step">2. Tìm đường: <b>${toChar(s.i)} ➝ ${toChar(s.j)}</b></div>
-                    <div class="math-eq">D[${toChar(s.i)}][${toChar(s.j)}] = min( ${val_ij}, <span class="highlight-k">D[${toChar(s.i)}][${toChar(s.k)}] + D[${toChar(s.k)}][${toChar(s.j)}]</span> )</div>
+                    
+                    <div class="math-eq">D[${toChar(s.i)}][${toChar(s.j)}] = min( ${oldValDisp}, <span class="highlight-k">D[${toChar(s.i)}][${toChar(s.k)}] + D[${toChar(s.k)}][${toChar(s.j)}]</span> )</div>
+                    
                     <div class="logic-step mt-3">
                         <b>So sánh:</b>
                         <ul>
-                            <li>Trực tiếp: <b>${val_ij}</b></li>
+                            <li>Trực tiếp (Cũ): <b>${oldValDisp}</b></li>
                             <li>Qua ${toChar(s.k)}: <b>${val_ik} + ${val_kj} = ${sumDisp}</b></li>
                         </ul>
                     </div>
+                    
                     <div class="alert ${isUpdate ? 'alert-success' : 'alert-secondary'} mt-3 p-2 text-center small">
-                        ${isUpdate ? `<b>CẬP NHẬT!</b><br>Đường qua ${toChar(s.k)} tốt hơn.` : `<b>Giữ nguyên.</b>`}
+                        ${isUpdate ? `<b>CẬP NHẬT!</b><br>Đường mới (${sumDisp}) tốt hơn đường cũ (${oldValDisp}).` : `<b>Giữ nguyên.</b><br>Đường mới không ngắn hơn.`}
                     </div>
                 </div>`;
         }
