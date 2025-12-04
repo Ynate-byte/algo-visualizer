@@ -136,6 +136,48 @@
             transform: scale(1.05);
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
+
+                /* Danh sách các phép tính chi tiết bên phải */
+        .calc-list {
+            max-height: 400px; /* Giới hạn chiều cao, nếu dài quá thì cuộn */
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background: #fff;
+            padding: 10px;
+        }
+
+        .calc-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+        }
+
+        .calc-item:last-child { border-bottom: none; }
+
+        /* Item thành công (Cập nhật) */
+        .calc-success {
+            background-color: #d1e7dd;
+            border-left: 4px solid #198754;
+            color: #0f5132;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+
+        /* Item thất bại (Giữ nguyên) */
+        .calc-fail {
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c757d;
+            color: #6c757d;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            opacity: 0.8;
+        }
+
+        .math-bold { font-weight: bold; font-family: 'Courier New', monospace; }
     </style>
 </head>
 <body>
@@ -454,7 +496,7 @@
     const layout = document.createElement('div'); layout.className = 'floyd-view';
     const toChar = (n) => String.fromCharCode(65 + n);
 
-    // LEFT: Matrix
+    // --- LEFT PANEL: MA TRẬN (Giữ sạch, chỉ tô màu) ---
     const leftPanel = document.createElement('div'); leftPanel.className = 'floyd-left';
     const tbl = document.createElement('table'); tbl.className = 'floyd-table';
     
@@ -470,66 +512,89 @@
             const td = document.createElement('td'); 
             const valStr = (v >= 999) ? '∞' : v;
             
-            // Xây dựng nội dung ô
-            let cellContent = `<div>${valStr}</div>`;
-            
-            // LOGIC HIỂN THỊ MỚI
-            // Chỉ xử lý nếu đang xét hàng hiện tại (r == s.i) và có dữ liệu so sánh
+            // Chỉ hiển thị số, không chèn chữ nhỏ li ti nữa
+            td.innerText = valStr;
+
+            // Tô màu nền để báo hiệu trạng thái
             if (s.k !== -1 && r === s.i && s.attempts && s.attempts[c] !== -1) {
-                
-                const attemptVal = s.attempts[c];
-                const attemptStr = (attemptVal >= 999) ? '∞' : attemptVal;
-                
-                // Nếu được đánh dấu update -> Màu XANH
                 if (s.updates && s.updates[c] === 1) {
-                    td.className = 'cell-update';
-                    // Hiển thị giá trị cũ nhỏ ở dưới để thấy sự thay đổi
-                    cellContent = `<div>${attemptStr}</div><span class="sub-val">từ ${valStr}</span>`;
-                } 
-                // Nếu KHÔNG update (nhưng có tính toán) -> Viền XÁM (So sánh thất bại)
-                else {
-                    td.className = 'cell-fail';
-                    // Hiển thị giá trị tính toán được để chứng minh nó lớn hơn
-                    cellContent = `<div>${valStr}</div><span class="sub-val">vs ${attemptStr}</span>`;
+                    td.className = 'cell-update'; // Màu xanh
+                } else {
+                    td.className = 'cell-fail';   // Màu xám
                 }
             }
 
-            // Highlight cột K và hàng K
             if (s.k !== -1) {
-                if (r === s.k || c === s.k) td.classList.add('cell-k');
+                if (r === s.k || c === s.k) td.classList.add('cell-k'); // Highlight trục K
             }
-
-            td.innerHTML = cellContent;
             tr.appendChild(td);
         });
         tbl.appendChild(tr);
     });
     leftPanel.appendChild(tbl);
 
-    // RIGHT: Logic Explanation (Đơn giản hóa vì thông tin đã hiện trên bảng)
+    // --- RIGHT PANEL: BẢNG GIẢI THÍCH CHI TIẾT (To rõ) ---
     const rightPanel = document.createElement('div'); rightPanel.className = 'floyd-right';
     
     if (s.k === -1) {
-        rightPanel.innerHTML = `<div class="logic-card"><div class="logic-title">Kết quả</div><p>${s.msg}</p></div>`;
+        rightPanel.innerHTML = `<div class="logic-card"><div class="logic-title">Khởi tạo</div><p>${s.msg}</p></div>`;
     } else {
-        // Đếm số lượng update
-        let upCount = s.updates ? s.updates.filter(x => x===1).length : 0;
-        
+        // Tạo danh sách các phép tính
+        let detailsHTML = '<div class="calc-list">';
+        let hasDetail = false;
+
+        // Duyệt qua từng cột để tạo dòng giải thích
+        s.attempts.forEach((attemptVal, c) => {
+            // Bỏ qua chính nó, bỏ qua đỉnh K, và bỏ qua nếu không tính toán được (-1)
+            if (c === s.i || c === s.k || attemptVal === -1) return;
+
+            hasDetail = true;
+            const targetChar = toChar(c);
+            const oldVal = s.matrix[s.i][c]; // Giá trị cũ trong ma trận
+            const oldStr = (oldVal >= 999) ? '∞' : oldVal;
+            const newStr = (attemptVal >= 999) ? '∞' : attemptVal;
+            const kVal_ik = s.matrix[s.i][s.k] >= 999 ? '∞' : s.matrix[s.i][s.k]; // i -> k
+            const kVal_kj = s.matrix[s.k][c] >= 999 ? '∞' : s.matrix[s.k][c];     // k -> j (j chính là c)
+
+            // Kiểm tra xem có update không
+            const isUpdate = (s.updates && s.updates[c] === 1);
+            
+            if (isUpdate) {
+                // Dòng màu xanh (Thành công)
+                detailsHTML += `
+                <div class="calc-item calc-success">
+                    <div>
+                        <strong>Đến ${targetChar}:</strong> <span class="math-bold">${oldStr} > ${newStr}</span>
+                        <div style="font-size: 0.8em">Qua K: ${kVal_ik} + ${kVal_kj} = ${newStr}</div>
+                    </div>
+                    <span class="badge bg-success">Update</span>
+                </div>`;
+            } else {
+                // Dòng màu xám (Thất bại - Giữ nguyên)
+                detailsHTML += `
+                <div class="calc-item calc-fail">
+                    <div>
+                        <strong>Đến ${targetChar}:</strong> <span class="math-bold">${oldStr} ≤ ${newStr}</span>
+                        <div style="font-size: 0.8em">Giữ đường cũ</div>
+                    </div>
+                    <span class="badge bg-secondary">Giữ cũ</span>
+                </div>`;
+            }
+        });
+        detailsHTML += '</div>';
+
+        if (!hasDetail) detailsHTML = '<div class="alert alert-warning">Không có đường đi nào qua K để xét.</div>';
+
         rightPanel.innerHTML = `
-            <div class="logic-card">
-                <div class="logic-title">Bước ${s.step}: Trung gian ${toChar(s.k)}</div>
-                <div class="logic-step">Đang xét toàn bộ hàng: <b>${toChar(s.i)}</b></div>
-                <div class="mt-3">
-                    <span class="badge bg-success me-2">${upCount} Cập nhật</span>
-                    <span class="badge bg-secondary text-light border">So sánh thất bại</span>
+            <div class="logic-card" style="text-align: left;">
+                <div class="logic-title">Đỉnh trung gian K = ${toChar(s.k)}</div>
+                <div class="mb-2">Đang xét hàng: <b>${toChar(s.i)}</b> đi đến các đỉnh khác:</div>
+                
+                ${detailsHTML}
+                
+                <div class="mt-2 text-muted small fst-italic">
+                    *Công thức: min(Cũ, i→K + K→Đích)
                 </div>
-                <div class="alert alert-info mt-3 small">
-                    <ul class="mb-0 ps-3">
-                        <li><b>Ô xanh:</b> Tìm thấy đường ngắn hơn qua ${toChar(s.k)}.</li>
-                        <li><b>Ô xám:</b> Đã thử đi qua ${toChar(s.k)} nhưng đường dài hơn (số nhỏ bên dưới).</li>
-                    </ul>
-                </div>
-                <p class="mt-2 fst-italic small text-muted">"${s.msg}"</p>
             </div>`;
     }
 
