@@ -144,6 +144,7 @@
                 <button class="btn btn-warning text-white fw-bold" onclick="generateBinary()">▶ Sinh mảng</button>
             </div>
             <div class="mb-3">
+                <label class="small text-muted">Bạn có thể sửa số bên dưới (Cách nhau dấu phẩy):</label>
                 <input type="text" id="bin-array" class="form-control text-center fw-bold text-secondary">
             </div>
             <div class="d-flex justify-content-center gap-2">
@@ -155,10 +156,12 @@
         <div id="input-huffman" class="input-panel text-center">
             <h5 class="mb-3 text-success">Huffman Coding</h5>
             <div class="mb-3">
+                <label>Nhập văn bản hoặc chọn file txt:</label>
                 <div class="input-group w-50 mx-auto mb-2">
                     <input type="file" class="form-control" id="huff-file-input" accept=".txt">
                 </div>
                 <textarea id="huff-str" class="form-control mx-auto fw-bold text-secondary" rows="4" style="width: 80%; min-height: 100px;">ABACABAD</textarea>
+                <div class="small text-muted mt-1">Hệ thống sẽ tự động tính tần suất ký tự.</div>
             </div>
             <button class="btn btn-success px-4 fw-bold" onclick="runAlgo('huffman')">▶ XÂY DỰNG CÂY</button>
         </div>
@@ -384,7 +387,7 @@
         const wrapper = document.createElement('div');
         wrapper.style.display = 'flex'; wrapper.style.flexWrap = 'wrap'; wrapper.style.justifyContent = 'center'; wrapper.style.gap = '30px'; wrapper.style.width = '100%';
 
-        // Tree
+        // Tree Construction
         const treeArea = document.createElement('div'); treeArea.className = 'tree';
         const ul = document.createElement('ul');
         const create = (id) => {
@@ -405,22 +408,49 @@
         treeArea.appendChild(ul);
         wrapper.appendChild(treeArea);
 
-        // Table logic (giữ nguyên)
+        // Efficiency Table Logic (ĐẦY ĐỦ)
         const leaves = s.nodes.filter(n => n.left === -1 && n.right === -1 && n.code && n.code !== "");
         if (leaves.length > 0) {
-            // ... (Phần logic bảng Huffman giống cũ, không đổi) ...
             let payloadBits = 0; let totalChars = 0;
             leaves.forEach(l => { payloadBits += l.freq * l.code.length; totalChars += l.freq; });
-            let headerOverhead = leaves.length * 16; let totalCompressed = payloadBits + headerOverhead; let original = totalChars * 8;
+            
+            // Ước lượng Overhead: Mỗi ký tự lá tốn khoảng 16 bit (8 bit char + 8 bit length) để lưu bảng mã
+            let headerOverhead = leaves.length * 16; 
+            let totalCompressed = payloadBits + headerOverhead; 
+            let original = totalChars * 8; // ASCII chuẩn
             let ratio = original > 0 ? (Math.abs(original - totalCompressed) / original * 100).toFixed(1) : 0;
+            
+            let isBloated = totalCompressed > original;
+
             const tableArea = document.createElement('div'); tableArea.style.minWidth = '300px';
-            tableArea.innerHTML = `<div class="card shadow-sm border-success"><div class="card-header bg-success text-white fw-bold">Hiệu Quả Nén</div><div class="card-body p-0"><table class="table table-striped mb-0 text-center"><thead class="table-light"><tr><th>Ký tự</th><th>Mã Bit</th></tr></thead><tbody>${leaves.map(l => `<tr><td>${l.name}</td><td class="font-monospace">${l.code}</td></tr>`).join('')}</tbody></table></div><div class="card-footer bg-light text-center fw-bold text-success">Tiết kiệm ${ratio}%</div></div>`;
+            
+            // Render Bảng
+            tableArea.innerHTML = `
+                <div class="card shadow-sm ${isBloated ? 'border-danger' : 'border-success'}">
+                    <div class="card-header ${isBloated ? 'bg-danger' : 'bg-success'} text-white fw-bold text-center">
+                        ${isBloated ? 'CẢNH BÁO: Dữ liệu phình to!' : 'Hiệu Quả Nén'}
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped mb-0 text-center">
+                            <thead class="table-light"><tr><th>Ký tự</th><th>Tần suất</th><th>Mã Bit</th></tr></thead>
+                            <tbody>
+                                ${leaves.map(l => `<tr><td class="fw-bold">${l.name}</td><td>${l.freq}</td><td class="text-danger font-monospace">${l.code}</td></tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer bg-light p-3">
+                        <div class="d-flex justify-content-between mb-1"><span class="text-muted">Gốc (ASCII 8-bit):</span><span class="fw-bold">${totalChars} × 8 = ${original} bits</span></div>
+                        <div class="d-flex justify-content-between mb-1"><span class="text-muted">Nén (Payload + Header):</span><span>${payloadBits} + ${headerOverhead} bits</span></div>
+                        <div class="d-flex justify-content-between mb-2 pt-2 border-top"><span class="fw-bold">Tổng sau nén:</span><span class="fw-bold ${isBloated ? 'text-danger' : 'text-success'}">${totalCompressed} bits</span></div>
+                        ${isBloated ? `<div class="alert alert-danger py-1 text-center small mb-0">Tăng thêm ${ratio}%</div>` : `<div class="progress" style="height: 25px;"><div class="progress-bar bg-success" style="width: ${ratio}%">Tiết kiệm ${ratio}%</div></div>`}
+                    </div>
+                </div>`;
             wrapper.appendChild(tableArea);
         }
         container.appendChild(wrapper);
     }
 
-    // --- FLOYD INTERACTIVE FUNCTIONS ---
+    // --- FLOYD INTERACTIVE FUNCTIONS (ADVANCED) ---
     function setViewMode(mode) {
         viewMode = mode;
         render(); 
@@ -482,7 +512,7 @@
             row.forEach((v, c) => {
                 const td = document.createElement('td'); 
                 
-                // Logic hiển thị dữ liệu
+                // Logic hiển thị dữ liệu (Dist vs Path)
                 if (viewMode === 'dist') {
                     td.innerText = (v >= 999) ? '∞' : v;
                 } else {
@@ -505,8 +535,10 @@
         });
         mainPanel.appendChild(tbl);
 
-        // --- CỘT 3: BẢNG GIẢI THÍCH ---
+        // --- CỘT 3: BẢNG GIẢI THÍCH (HOVER INTERACTIVE) ---
         const rightPanel = document.createElement('div'); rightPanel.className = 'floyd-right';
+        
+        // Fix lỗi hiển thị bước Hoàn tất
         if (s.k === -1 || s.i === -1) { 
             let title = (s.k === -1) ? "Khởi tạo" : "Hoàn tất";
             if (s.i === -1 && s.k !== -1) title = "Kết quả cuối cùng";
@@ -524,7 +556,7 @@
                 const kVal_ik = s.matrix[s.i][s.k] >= 999 ? '∞' : s.matrix[s.i][s.k]; 
                 const kVal_kj = s.matrix[s.k][c] >= 999 ? '∞' : s.matrix[s.k][c];     
 
-                // Thêm sự kiện Hover vào từng item
+                // Thêm sự kiện Hover vào từng item để highlight bên trái
                 const hoverScript = `onmouseenter="highlightCells(${s.i}, ${c}, ${s.k})" onmouseleave="clearHighlight()"`;
 
                 if (isUpdate) {
