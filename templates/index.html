@@ -23,6 +23,14 @@
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* --- ZOOM CONTROLS (NEW) --- */
+        .zoom-controls {
+            position: absolute; top: 15px; right: 15px; z-index: 100;
+            opacity: 0.9;
+        }
+        .zoom-controls button { font-weight: bold; width: 45px; }
+        .zoom-controls button.reset-btn { width: auto; padding: 0 15px; }
+
         /* --- 1. BINARY SEARCH STYLES --- */
         .binary-wrapper { position: relative; display: flex; justify-content: center; gap: 15px; padding: 60px 0; width: 100%; }
         .array-box { 
@@ -165,10 +173,18 @@
             <span class="badge bg-primary fs-6" id="stepBadge">0 / 0</span>
         </div>
 
-        <div class="visual-area border rounded-3 d-flex justify-content-center align-items-center bg-white" 
-             style="min-height: 500px; overflow: auto; position: relative; padding: 20px;">
-            <div id="visualContainer" style="width: 100%; text-align: center;">
-                <div class="text-muted fst-italic">Khu vực hiển thị đồ họa</div>
+        <div class="visual-area border rounded-3 bg-white position-relative" style="height: 500px; overflow: hidden;">
+            
+            <div class="zoom-controls btn-group shadow-sm">
+                <button class="btn btn-light border" title="Thu nhỏ" onclick="changeZoom(-0.1)">➖</button>
+                <button class="btn btn-light border reset-btn" title="Đặt lại" onclick="resetZoom()" id="zoomLabel">100%</button>
+                <button class="btn btn-light border" title="Phóng to" onclick="changeZoom(0.1)">➕</button>
+            </div>
+
+            <div id="visualContainerWrapper" style="width: 100%; height: 100%; overflow: auto; display: flex; justify-content: center; align-items: center;">
+                <div id="visualContainer" style="text-align: center; transition: transform 0.2s ease-out; transform-origin: top center; min-width: 100%;">
+                    <div class="text-muted fst-italic mt-5">Khu vực hiển thị đồ họa</div>
+                </div>
             </div>
         </div>
 
@@ -188,6 +204,39 @@
     let binData = [];
     let isBinaryInitialized = false;
     let currentFloydMatrix = "";
+    
+    // --- NEW ZOOM LOGIC ---
+    let currentScale = 1.0;
+    function changeZoom(delta) {
+        currentScale += delta;
+        // Giới hạn zoom từ 20% đến 300%
+        if (currentScale < 0.2) currentScale = 0.2;
+        if (currentScale > 3.0) currentScale = 3.0;
+        applyZoom();
+    }
+
+    function resetZoom() {
+        currentScale = 1.0;
+        applyZoom();
+    }
+
+    function applyZoom() {
+        const el = document.getElementById('visualContainer');
+        el.style.transform = `scale(${currentScale})`;
+        
+        // Cập nhật text hiển thị %
+        document.getElementById('zoomLabel').innerText = Math.round(currentScale * 100) + '%';
+
+        // Điều chỉnh align để khi zoom nhỏ (nhỏ hơn khung nhìn) nó không bị lệch
+        const wrapper = document.getElementById('visualContainerWrapper');
+        if (currentScale < 1) {
+            wrapper.style.alignItems = 'flex-start'; // Để nội dung bám lên trên khi nhỏ
+            el.style.marginTop = '50px';
+        } else {
+            wrapper.style.alignItems = 'flex-start'; 
+            el.style.marginTop = '20px';
+        }
+    }
 
     // --- SỰ KIỆN WINDOW LOAD: Xử lý đọc file Huffman ---
     window.onload = function() {
@@ -198,7 +247,6 @@
                 if (!file) return;
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    // Lấy nội dung file gán vào ô input
                     document.getElementById('huff-str').value = e.target.result.trim();
                 };
                 reader.readAsText(file);
@@ -210,8 +258,9 @@
         document.querySelectorAll('.input-panel').forEach(el => el.style.display = 'none');
         document.getElementById(`input-${algo}`).style.display = 'block';
         document.getElementById('algoLabel').innerText = algo.toUpperCase();
-        document.getElementById('visualContainer').innerHTML = '<div class="text-muted">Sẵn sàng nhập liệu.</div>';
+        document.getElementById('visualContainer').innerHTML = '<div class="text-muted mt-5">Sẵn sàng nhập liệu.</div>';
         document.querySelector('.controls').style.display = 'none';
+        resetZoom(); // Reset zoom khi chuyển tab
         if (algo === 'binary') generateBinary();
         if (algo === 'floyd') generateFloyd();
     }
@@ -251,13 +300,9 @@
         
         let payload = {};
         if (algo === 'binary') {
-            // --- CẬP NHẬT LOGIC: Lấy mảng từ input người dùng và sắp xếp ---
             const rawStr = document.getElementById('bin-array').value;
-            // Chuyển chuỗi thành mảng số -> Sắp xếp (Sort) vì Binary Search bắt buộc
             let arrNum = rawStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
             arrNum.sort((a, b) => a - b);
-            
-            // Cập nhật lại giao diện cho đẹp
             document.getElementById('bin-array').value = arrNum.join(',');
 
             payload = {
@@ -291,6 +336,7 @@
             currentStep = 0;
             document.querySelector('.controls').style.display = 'block';
             render();
+            resetZoom(); // Reset zoom khi chạy mới
         } catch (e) {
             alert("Lỗi: " + e);
         }
@@ -344,8 +390,11 @@
         const roots = s.nodes.filter(n => n.active === 1).sort((a,b) => a.freq - b.freq);
         container.innerHTML = '';
         
+        // Wrapper cho cây huffman
         const wrapper = document.createElement('div');
         wrapper.style.display = 'flex'; wrapper.style.flexWrap = 'wrap'; wrapper.style.justifyContent = 'center'; wrapper.style.gap = '30px'; wrapper.style.width = '100%';
+        // Đảm bảo khi zoom cây không bị vỡ layout
+        wrapper.style.transformOrigin = 'top center';
 
         // Cột 1: Tree
         const treeArea = document.createElement('div'); treeArea.className = 'tree';
@@ -372,7 +421,7 @@
         treeArea.appendChild(ul);
         wrapper.appendChild(treeArea);
 
-        // Cột 2: Table & Calculation (CẬP NHẬT LOGIC SO SÁNH OVERHEAD)
+        // Cột 2: Table & Calculation
         const leaves = s.nodes.filter(n => n.left === -1 && n.right === -1 && n.code && n.code !== "");
         
         if (leaves.length > 0) {
@@ -385,15 +434,9 @@
                 totalChars += l.freq;
             });
 
-            // --- TÍNH TOÁN OVERHEAD (MỚI) ---
-            // Giả lập kích thước Header để lưu cây/bảng tần suất:
-            // Mỗi ký tự duy nhất cần: 8 bit (ASCII) + 8 bit (độ dài mã/tần suất) = 16 bits
             let headerOverhead = leaves.length * 16; 
-            
             let totalCompressedSize = payloadBits + headerOverhead;
-            let originalBits = totalChars * 8; // ASCII chuẩn 8 bit
-            
-            // So sánh
+            let originalBits = totalChars * 8; 
             let isBloated = totalCompressedSize > originalBits;
             let diff = Math.abs(originalBits - totalCompressedSize);
             let ratio = originalBits > 0 ? ((diff / originalBits) * 100).toFixed(1) : 0;
@@ -429,7 +472,6 @@
                             <span class="fw-bold">Tổng sau nén:</span>
                             <span class="fw-bold ${isBloated ? 'text-danger' : 'text-success'}">${totalCompressedSize} bits</span>
                         </div>
-
                         ${isBloated 
                             ? `<div class="alert alert-danger py-1 text-center small mb-0">
                                  <b>Kém hiệu quả!</b> Tăng thêm ${ratio}% dung lượng.<br>
@@ -450,7 +492,6 @@
     function renderFloyd(container, s) {
         container.innerHTML = '';
         const layout = document.createElement('div'); layout.className = 'floyd-view';
-        
         const toChar = (n) => String.fromCharCode(65 + n);
 
         // LEFT: Matrix
@@ -506,17 +547,7 @@
                     <div class="logic-title">Giải thích Bước ${s.step}</div>
                     <div class="logic-step">1. Đỉnh trung gian: <b class="highlight-k">K = ${toChar(s.k)}</b></div>
                     <div class="logic-step">2. Tìm đường: <b>${toChar(s.i)} ➝ ${toChar(s.j)}</b></div>
-                    
                     <div class="math-eq">D[${toChar(s.i)}][${toChar(s.j)}] = min( ${oldValDisp}, <span class="highlight-k">D[${toChar(s.i)}][${toChar(s.k)}] + D[${toChar(s.k)}][${toChar(s.j)}]</span> )</div>
-                    
-                    <div class="logic-step mt-3">
-                        <b>So sánh:</b>
-                        <ul>
-                            <li>Trực tiếp (Cũ): <b>${oldValDisp}</b></li>
-                            <li>Qua ${toChar(s.k)}: <b>${val_ik} + ${val_kj} = ${sumDisp}</b></li>
-                        </ul>
-                    </div>
-                    
                     <div class="alert ${isUpdate ? 'alert-success' : 'alert-secondary'} mt-3 p-2 text-center small">
                         ${isUpdate ? `<b>CẬP NHẬT!</b><br>Đường mới (${sumDisp}) tốt hơn đường cũ (${oldValDisp}).` : `<b>Giữ nguyên.</b><br>Đường mới không ngắn hơn.`}
                     </div>
