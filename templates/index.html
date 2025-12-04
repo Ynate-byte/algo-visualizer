@@ -23,7 +23,7 @@
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- ZOOM CONTROLS (NEW) --- */
+        /* --- ZOOM CONTROLS --- */
         .zoom-controls {
             position: absolute; top: 15px; right: 15px; z-index: 100;
             opacity: 0.9;
@@ -207,40 +207,25 @@
     let isBinaryInitialized = false;
     let currentFloydMatrix = "";
     
-    // --- NEW ZOOM LOGIC ---
+    // --- ZOOM LOGIC ---
     let currentScale = 1.0;
     function changeZoom(delta) {
         currentScale += delta;
-        // Giới hạn zoom từ 20% đến 300%
         if (currentScale < 0.2) currentScale = 0.2;
         if (currentScale > 3.0) currentScale = 3.0;
         applyZoom();
     }
-
-    function resetZoom() {
-        currentScale = 1.0;
-        applyZoom();
-    }
-
+    function resetZoom() { currentScale = 1.0; applyZoom(); }
     function applyZoom() {
         const el = document.getElementById('visualContainer');
         el.style.transform = `scale(${currentScale})`;
-        
-        // Cập nhật text hiển thị %
         document.getElementById('zoomLabel').innerText = Math.round(currentScale * 100) + '%';
-
-        // Điều chỉnh align để khi zoom nhỏ (nhỏ hơn khung nhìn) nó không bị lệch
         const wrapper = document.getElementById('visualContainerWrapper');
-        if (currentScale < 1) {
-            wrapper.style.alignItems = 'flex-start'; // Để nội dung bám lên trên khi nhỏ
-            el.style.marginTop = '50px';
-        } else {
-            wrapper.style.alignItems = 'flex-start'; 
-            el.style.marginTop = '20px';
-        }
+        if (currentScale < 1) { wrapper.style.alignItems = 'flex-start'; el.style.marginTop = '50px'; } 
+        else { wrapper.style.alignItems = 'flex-start'; el.style.marginTop = '20px'; }
     }
 
-    // --- SỰ KIỆN WINDOW LOAD: Xử lý đọc file Huffman ---
+    // --- FILE INPUT HANDLING ---
     window.onload = function() {
         const fileInput = document.getElementById('huff-file-input');
         if(fileInput) {
@@ -248,9 +233,7 @@
                 const file = e.target.files[0];
                 if (!file) return;
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('huff-str').value = e.target.result.trim();
-                };
+                reader.onload = function(e) { document.getElementById('huff-str').value = e.target.result.trim(); };
                 reader.readAsText(file);
             });
         }
@@ -262,7 +245,7 @@
         document.getElementById('algoLabel').innerText = algo.toUpperCase();
         document.getElementById('visualContainer').innerHTML = '<div class="text-muted mt-5">Sẵn sàng nhập liệu.</div>';
         document.querySelector('.controls').style.display = 'none';
-        resetZoom(); // Reset zoom khi chuyển tab
+        resetZoom();
         if (algo === 'binary') generateBinary();
         if (algo === 'floyd') generateFloyd();
     }
@@ -286,7 +269,8 @@
             for(let j=0; j<size; j++) {
                 if (i === j) matrix.push(0);
                 else {
-                    if (Math.random() < 0.4) matrix.push(999);
+                    // Logic sinh ma trận: 40% là vô cực (999), còn lại là số ngẫu nhiên
+                    if (Math.random() < 0.4) matrix.push(999); 
                     else matrix.push(Math.floor(Math.random() * 20) + 1);
                 }
             }
@@ -306,12 +290,7 @@
             let arrNum = rawStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
             arrNum.sort((a, b) => a - b);
             document.getElementById('bin-array').value = arrNum.join(',');
-
-            payload = {
-                size: arrNum.length, 
-                key: document.getElementById('bin-key').value,
-                arr_str: arrNum.join(',')
-            };
+            payload = { size: arrNum.length, key: document.getElementById('bin-key').value, arr_str: arrNum.join(',') };
         } else if (algo === 'huffman') {
             const str = document.getElementById('huff-str').value;
             let counts = {};
@@ -338,9 +317,10 @@
             currentStep = 0;
             document.querySelector('.controls').style.display = 'block';
             render();
-            resetZoom(); // Reset zoom khi chạy mới
+            resetZoom();
         } catch (e) {
             alert("Lỗi: " + e);
+            document.getElementById('msgBox').innerText = "Lỗi khi chạy thuật toán.";
         }
     }
 
@@ -373,17 +353,14 @@
         const setArr = (id, idx) => {
             const el = document.getElementById(id);
             const t = document.getElementById(`bin-box-${idx}`);
-            if (idx !== -1 && t) {
-                el.style.transform = `translateX(${t.offsetLeft}px)`; el.style.opacity = '1';
-            } else el.style.opacity = '0';
+            if (idx !== -1 && t) { el.style.transform = `translateX(${t.offsetLeft}px)`; el.style.opacity = '1'; } 
+            else el.style.opacity = '0';
         };
         setArr('arr-low', s.low); setArr('arr-high', s.high);
 
         binData.forEach((_, i) => {
             const b = document.getElementById(`bin-box-${i}`); b.className = 'array-box';
-            if (s.low !== -1 && s.high !== -1) {
-                if (i < s.low || i > s.high) b.classList.add('dim'); else b.classList.add('active');
-            }
+            if (s.low !== -1 && s.high !== -1) { if (i < s.low || i > s.high) b.classList.add('dim'); else b.classList.add('active'); }
             if (i === s.mid) { if (s.found) b.classList.add('found'); else b.classList.add('mid'); }
         });
     }
@@ -391,14 +368,10 @@
     function renderHuffman(container, s) {
         const roots = s.nodes.filter(n => n.active === 1).sort((a,b) => a.freq - b.freq);
         container.innerHTML = '';
-        
-        // Wrapper cho cây huffman
         const wrapper = document.createElement('div');
-        wrapper.style.display = 'flex'; wrapper.style.flexWrap = 'wrap'; wrapper.style.justifyContent = 'center'; wrapper.style.gap = '30px'; wrapper.style.width = '100%';
-        // Đảm bảo khi zoom cây không bị vỡ layout
-        wrapper.style.transformOrigin = 'top center';
+        wrapper.style.display = 'flex'; wrapper.style.flexWrap = 'wrap'; wrapper.style.justifyContent = 'center'; wrapper.style.gap = '30px'; wrapper.style.width = '100%'; wrapper.style.transformOrigin = 'top center';
 
-        // Cột 1: Tree
+        // Tree
         const treeArea = document.createElement('div'); treeArea.className = 'tree';
         const ul = document.createElement('ul');
         const create = (id) => {
@@ -423,71 +396,32 @@
         treeArea.appendChild(ul);
         wrapper.appendChild(treeArea);
 
-        // Cột 2: Table & Calculation
+        // Table
         const leaves = s.nodes.filter(n => n.left === -1 && n.right === -1 && n.code && n.code !== "");
-        
         if (leaves.length > 0) {
-            let payloadBits = 0; 
-            let totalChars = 0;
-            
-            leaves.forEach(l => {
-                let bits = l.freq * l.code.length;
-                payloadBits += bits;
-                totalChars += l.freq;
-            });
+            let payloadBits = 0; let totalChars = 0;
+            leaves.forEach(l => { bits = l.freq * l.code.length; payloadBits += bits; totalChars += l.freq; });
+            let headerOverhead = leaves.length * 16; let totalCompressedSize = payloadBits + headerOverhead; let originalBits = totalChars * 8;
+            let isBloated = totalCompressedSize > originalBits; let diff = Math.abs(originalBits - totalCompressedSize); let ratio = originalBits > 0 ? ((diff / originalBits) * 100).toFixed(1) : 0;
 
-            let headerOverhead = leaves.length * 16; 
-            let totalCompressedSize = payloadBits + headerOverhead;
-            let originalBits = totalChars * 8; 
-            let isBloated = totalCompressedSize > originalBits;
-            let diff = Math.abs(originalBits - totalCompressedSize);
-            let ratio = originalBits > 0 ? ((diff / originalBits) * 100).toFixed(1) : 0;
-
-            const tableArea = document.createElement('div');
-            tableArea.style.minWidth = '350px'; 
+            const tableArea = document.createElement('div'); tableArea.style.minWidth = '350px';
             tableArea.innerHTML = `
                 <div class="card shadow-sm ${isBloated ? 'border-danger' : 'border-success'}">
-                    <div class="card-header ${isBloated ? 'bg-danger' : 'bg-success'} text-white fw-bold text-center">
-                        ${isBloated ? 'CẢNH BÁO: Dữ liệu phình to!' : 'Hiệu Quả Nén'}
-                    </div>
+                    <div class="card-header ${isBloated ? 'bg-danger' : 'bg-success'} text-white fw-bold text-center">${isBloated ? 'CẢNH BÁO: Dữ liệu phình to!' : 'Hiệu Quả Nén'}</div>
                     <div class="card-body p-0">
-                        <table class="table table-striped mb-0 text-center">
-                            <thead class="table-light"><tr><th>Ký tự</th><th>Tần suất</th><th>Mã Bit</th></tr></thead>
+                        <table class="table table-striped mb-0 text-center"><thead class="table-light"><tr><th>Ký tự</th><th>Tần suất</th><th>Mã Bit</th></tr></thead>
                             <tbody>${leaves.map(l => `<tr><td class="fw-bold">${l.name}</td><td>${l.freq}</td><td class="text-danger font-monospace">${l.code}</td></tr>`).join('')}</tbody>
                         </table>
                     </div>
                     <div class="card-footer bg-light p-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">Gốc (ASCII 8-bit):</span>
-                            <span class="fw-bold">${totalChars} × 8 = ${originalBits} bits</span>
-                        </div>
-                        <hr class="my-2">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">Payload (Nội dung nén):</span>
-                            <span>${payloadBits} bits</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1 text-warning">
-                            <span class="text-muted fst-italic">+ Header (Lưu cây):</span>
-                            <span>~${headerOverhead} bits</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2 pt-2 border-top">
-                            <span class="fw-bold">Tổng sau nén:</span>
-                            <span class="fw-bold ${isBloated ? 'text-danger' : 'text-success'}">${totalCompressedSize} bits</span>
-                        </div>
-                        ${isBloated 
-                            ? `<div class="alert alert-danger py-1 text-center small mb-0">
-                                 <b>Kém hiệu quả!</b> Tăng thêm ${ratio}% dung lượng.<br>
-                                 (Do chi phí lưu Header > tiết kiệm từ mã hóa)
-                               </div>`
-                            : `<div class="progress" style="height: 25px;">
-                                    <div class="progress-bar bg-success" style="width: ${ratio}%">Tiết kiệm ${ratio}%</div>
-                               </div>`
-                        }
+                        <div class="d-flex justify-content-between mb-1"><span class="text-muted">Gốc (ASCII 8-bit):</span><span class="fw-bold">${totalChars} × 8 = ${originalBits} bits</span></div>
+                        <div class="d-flex justify-content-between mb-1"><span class="text-muted">Payload:</span><span>${payloadBits} bits</span></div>
+                        <div class="d-flex justify-content-between mb-2 pt-2 border-top"><span class="fw-bold">Tổng sau nén:</span><span class="fw-bold ${isBloated ? 'text-danger' : 'text-success'}">${totalCompressedSize} bits</span></div>
+                        ${isBloated ? `<div class="alert alert-danger py-1 text-center small mb-0">Tăng thêm ${ratio}%</div>` : `<div class="progress" style="height: 25px;"><div class="progress-bar bg-success" style="width: ${ratio}%">Tiết kiệm ${ratio}%</div></div>`}
                     </div>
                 </div>`;
             wrapper.appendChild(tableArea);
         }
-
         container.appendChild(wrapper);
     }
 
@@ -512,8 +446,10 @@
             
             row.forEach((v, j) => {
                 const td = document.createElement('td'); 
-                const disp = (v === 999) ? '∞' : v;
+                // XỬ LÝ QUAN TRỌNG: Hiển thị 999 là ∞
+                const disp = (v >= 999) ? '∞' : v;
                 td.innerText = disp;
+                
                 if (s.k !== -1) {
                     if (i === s.k || j === s.k) td.classList.add('cell-k');
                     if (i === s.i && j === s.k) { td.classList.add('cell-check'); val_ik = disp; }
@@ -527,21 +463,27 @@
         });
         leftPanel.appendChild(tbl);
 
+        // RIGHT: Logic Explanation
         const rightPanel = document.createElement('div'); rightPanel.className = 'floyd-right';
         if (s.k === -1) {
             rightPanel.innerHTML = `<div class="logic-card"><div class="logic-title">⚡ Khởi tạo</div><p>Ma trận khoảng cách ban đầu.</p><ul><li><b>0</b>: Đến chính nó.</li><li><b>∞</b>: Chưa có đường đi.</li></ul></div>`;
         } else {
-            let sumRaw = (val_ik === '∞' || val_kj === '∞') ? Infinity : (parseInt(val_ik) + parseInt(val_kj));
-            let sumDisp = (sumRaw === Infinity) ? '∞' : sumRaw;
+            // Logic tính toán hiển thị (chỉ để minh họa, số thực sự đã tính ở Backend)
+            let sumDisp = '∞';
+            if (val_ik !== '∞' && val_kj !== '∞') {
+                sumDisp = parseInt(val_ik) + parseInt(val_kj);
+            }
+
             let isUpdate = (s.high_i !== -1);
-            
             let oldValDisp = val_ij; 
+            
+            // Nếu đây là bước cập nhật, ta cần lấy giá trị cũ từ step trước đó để so sánh
             if (isUpdate && currentStep > 0) {
-                try {
-                    const prevMatrix = steps[currentStep - 1].matrix;
-                    const prevVal = prevMatrix[s.i][s.j]; 
-                    oldValDisp = (prevVal === 999) ? '∞' : prevVal;
-                } catch(e) { console.log(e); }
+                 try {
+                     const prevRow = steps[currentStep - 1].matrix[s.i];
+                     const prevVal = prevRow[s.j];
+                     oldValDisp = (prevVal >= 999) ? '∞' : prevVal;
+                 } catch(e) {}
             }
 
             rightPanel.innerHTML = `
@@ -549,9 +491,10 @@
                     <div class="logic-title">Giải thích Bước ${s.step}</div>
                     <div class="logic-step">1. Đỉnh trung gian: <b class="highlight-k">K = ${toChar(s.k)}</b></div>
                     <div class="logic-step">2. Tìm đường: <b>${toChar(s.i)} ➝ ${toChar(s.j)}</b></div>
-                    <div class="math-eq">D[${toChar(s.i)}][${toChar(s.j)}] = min( ${oldValDisp}, <span class="highlight-k">D[${toChar(s.i)}][${toChar(s.k)}] + D[${toChar(s.k)}][${toChar(s.j)}]</span> )</div>
+                    <div class="math-eq">min( ${oldValDisp}, <span class="highlight-k">${val_ik} + ${val_kj}</span> )</div>
+                    <div class="math-eq">= min( ${oldValDisp}, <span class="highlight-k">${sumDisp}</span> )</div>
                     <div class="alert ${isUpdate ? 'alert-success' : 'alert-secondary'} mt-3 p-2 text-center small">
-                        ${isUpdate ? `<b>CẬP NHẬT!</b><br>Đường mới (${sumDisp}) tốt hơn đường cũ (${oldValDisp}).` : `<b>Giữ nguyên.</b><br>Đường mới không ngắn hơn.`}
+                        ${isUpdate ? `<b>CẬP NHẬT!</b><br>Đường qua K (${sumDisp}) ngắn hơn.` : `<b>Giữ nguyên.</b><br>Đường cũ vẫn tốt hơn.`}
                     </div>
                 </div>`;
         }
