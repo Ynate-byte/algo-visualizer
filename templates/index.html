@@ -83,101 +83,46 @@
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); } }
 
         /* --- 3. FLOYD WARSHALL STYLES --- */
-        .floyd-view { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; align-items: flex-start; width: 100%; }
-        .floyd-left { flex: 1; min-width: 300px; display: flex; flex-direction: column; align-items: center; }
+        .floyd-view { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; align-items: flex-start; width: 100%; }
+        
+        /* Bảng gốc & Điều khiển */
+        .matrix-card {
+            background: white; padding: 15px; border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #dee2e6;
+            margin-bottom: 20px; text-align: center;
+        }
+        .matrix-card h6 { font-size: 0.9rem; font-weight: bold; color: #6c757d; text-transform: uppercase; margin-bottom: 10px; }
+        .mini-table { margin: 0 auto; border-collapse: collapse; }
+        .mini-table td, .mini-table th { width: 30px; height: 30px; font-size: 0.75rem; border: 1px solid #dee2e6; text-align: center; }
+        .mini-table th { background: #f8f9fa; }
+        
+        /* Bảng chính */
         .floyd-table { border-collapse: separate; border-spacing: 4px; }
         .floyd-table td, .floyd-table th { 
             width: 45px; height: 45px; text-align: center; vertical-align: middle; 
             border: 1px solid #dee2e6; border-radius: 6px; background: white; 
-            transition: background-color 0.3s; font-size: 0.9rem; 
+            transition: background-color 0.2s; font-size: 0.9rem; cursor: default;
         }
         .floyd-table th { background-color: #e9ecef; font-weight: bold; color: #495057; }
-        .cell-k { background-color: #fff3cd !important; }
-        .cell-check { background-color: #d1e7dd !important; border: 2px solid #198754 !important; }
-        .cell-target { border: 2px solid #0d6efd !important; font-weight: bold; transform: scale(1.1); }
-        .cell-update { background-color: #dc3545 !important; color: white !important; }
 
-        .floyd-right { 
-            flex: 1; min-width: 300px; background: #f8f9fa; 
-            border: 1px solid #dee2e6; border-radius: 12px; padding: 20px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-        }
-        .logic-card { text-align: left; }
-        .logic-title { font-size: 1.1rem; font-weight: bold; color: #495057; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
-        .logic-step { margin-bottom: 10px; font-size: 1rem; }
-        .math-eq { 
-            background: white; padding: 10px; border-radius: 8px; border: 1px dashed #adb5bd; 
-            font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #333; 
-            margin: 15px 0; text-align: center; 
-        }
-        .highlight-k { color: #d63384; font-weight: bold; }
-        /* Thêm class cho giá trị so sánh (số nhỏ bên dưới) */
-        .sub-val {
-            display: block;
-            font-size: 0.65rem;
-            color: #6c757d;
-            margin-top: 2px;
-            font-style: italic;
-        }
+        /* Trạng thái ô */
+        .cell-pivot { background-color: #e0cffc !important; border: 2px solid #b197fc !important; font-weight: bold; color: #5f3dc4; }
+        .cell-update { background-color: #d1e7dd !important; border: 2px solid #198754 !important; font-weight: bold; color: #0f5132; transform: scale(1.05); }
+        .cell-fail { background-color: #f8f9fa !important; border: 2px dashed #adb5bd !important; opacity: 0.7; }
+        
+        /* Hover Effects */
+        .highlight-operand { background-color: #ffc107 !important; transform: scale(1.1); transition: 0.1s; z-index: 10; border-color: #ffca2c !important; color: black !important; }
+        .highlight-target-hover { border: 3px solid #0d6efd !important; transform: scale(1.15); z-index: 11; box-shadow: 0 0 10px rgba(13, 110, 253, 0.3); }
 
-        /* Ô đang được xét nhưng KHÔNG update (so sánh thất bại) */
-        .cell-fail {
-            background-color: #f8f9fa !important; /* Màu xám nhạt */
-            border: 2px dashed #adb5bd !important;
-            opacity: 0.7;
-        }
-
-        /* Ô update thành công */
-        .cell-update {
-            background-color: #d1e7dd !important; /* Màu xanh lá nhạt */
-            border: 2px solid #198754 !important;
-            font-weight: bold;
-            color: #0f5132;
-            transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-                /* Danh sách các phép tính chi tiết bên phải */
-        .calc-list {
-            max-height: 400px; /* Giới hạn chiều cao, nếu dài quá thì cuộn */
-            overflow-y: auto;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            background: #fff;
-            padding: 10px;
-        }
-
-        .calc-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 10px;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 0.95rem;
-        }
-
-        .calc-item:last-child { border-bottom: none; }
-
-        /* Item thành công (Cập nhật) */
-        .calc-success {
-            background-color: #d1e7dd;
-            border-left: 4px solid #198754;
-            color: #0f5132;
-            margin-bottom: 5px;
-            border-radius: 4px;
-        }
-
-        /* Item thất bại (Giữ nguyên) */
-        .calc-fail {
-            background-color: #f8f9fa;
-            border-left: 4px solid #6c757d;
-            color: #6c757d;
-            margin-bottom: 5px;
-            border-radius: 4px;
-            opacity: 0.8;
-        }
-
+        /* Right Panel */
+        .floyd-right { flex: 1; min-width: 320px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .calc-list { max-height: 400px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px; background: #fff; padding: 10px; }
+        .calc-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid #f0f0f0; font-size: 0.95rem; cursor: pointer; transition: background 0.1s; }
+        .calc-item:hover { background-color: #fff3cd !important; }
+        .calc-success { background-color: #d1e7dd; border-left: 4px solid #198754; color: #0f5132; margin-bottom: 5px; border-radius: 4px; }
+        .calc-fail { background-color: #f8f9fa; border-left: 4px solid #6c757d; color: #6c757d; margin-bottom: 5px; border-radius: 4px; opacity: 0.9; }
         .math-bold { font-weight: bold; font-family: 'Courier New', monospace; }
+
     </style>
 </head>
 <body>
@@ -199,7 +144,6 @@
                 <button class="btn btn-warning text-white fw-bold" onclick="generateBinary()">▶ Sinh mảng</button>
             </div>
             <div class="mb-3">
-                <label class="small text-muted">Bạn có thể sửa số bên dưới (Cách nhau dấu phẩy):</label>
                 <input type="text" id="bin-array" class="form-control text-center fw-bold text-secondary">
             </div>
             <div class="d-flex justify-content-center gap-2">
@@ -211,13 +155,10 @@
         <div id="input-huffman" class="input-panel text-center">
             <h5 class="mb-3 text-success">Huffman Coding</h5>
             <div class="mb-3">
-                <label>Nhập văn bản hoặc chọn file txt:</label>
                 <div class="input-group w-50 mx-auto mb-2">
                     <input type="file" class="form-control" id="huff-file-input" accept=".txt">
                 </div>
-                <textarea id="huff-str" class="form-control mx-auto fw-bold text-secondary" 
-                          rows="4" style="width: 80%; min-height: 100px;">ABACABAD</textarea>
-                <div class="small text-muted mt-1">Hệ thống sẽ tự động tính tần suất ký tự.</div>
+                <textarea id="huff-str" class="form-control mx-auto fw-bold text-secondary" rows="4" style="width: 80%; min-height: 100px;">ABACABAD</textarea>
             </div>
             <button class="btn btn-success px-4 fw-bold" onclick="runAlgo('huffman')">▶ XÂY DỰNG CÂY</button>
         </div>
@@ -241,8 +182,7 @@
             <span class="badge bg-primary fs-6" id="stepBadge">0 / 0</span>
         </div>
 
-        <div class="visual-area border rounded-3 bg-white position-relative" style="height: 500px; overflow: hidden;">
-            
+        <div class="visual-area border rounded-3 bg-white position-relative" style="height: 550px; overflow: hidden;">
             <div class="zoom-controls btn-group shadow-sm">
                 <button class="btn btn-light border" title="Thu nhỏ" onclick="changeZoom(-0.1)">➖</button>
                 <button class="btn btn-light border reset-btn" title="Đặt lại" onclick="resetZoom()" id="zoomLabel">100%</button>
@@ -273,6 +213,10 @@
     let isBinaryInitialized = false;
     let currentFloydMatrix = "";
     
+    // NÂNG CẤP FLOYD
+    let initialMatrixData = null; 
+    let viewMode = 'dist'; // 'dist' | 'path'
+
     // --- ZOOM LOGIC ---
     let currentScale = 1.0;
     function changeZoom(delta) {
@@ -291,7 +235,7 @@
         else { wrapper.style.alignItems = 'flex-start'; el.style.marginTop = '20px'; }
     }
 
-    // --- FILE INPUT HANDLING ---
+    // --- INIT ---
     window.onload = function() {
         const fileInput = document.getElementById('huff-file-input');
         if(fileInput) {
@@ -335,7 +279,6 @@
             for(let j=0; j<size; j++) {
                 if (i === j) matrix.push(0);
                 else {
-                    // Logic sinh ma trận: 40% là vô cực (999), còn lại là số ngẫu nhiên
                     if (Math.random() < 0.4) matrix.push(999); 
                     else matrix.push(Math.floor(Math.random() * 20) + 1);
                 }
@@ -349,6 +292,7 @@
         currentAlgo = algo;
         stopAuto();
         isBinaryInitialized = false;
+        initialMatrixData = null; // Reset floyd init data
         
         let payload = {};
         if (algo === 'binary') {
@@ -380,6 +324,9 @@
             steps = data;
             if (algo === 'binary' && steps.length > 0 && steps[0].data) binData = steps[0].data;
 
+            // Lưu ma trận ban đầu cho Floyd
+            if (algo === 'floyd' && steps.length > 0) initialMatrixData = steps[0].matrix;
+
             currentStep = 0;
             document.querySelector('.controls').style.display = 'block';
             render();
@@ -402,6 +349,7 @@
         else if (currentAlgo === 'floyd') renderFloyd(container, s);
     }
 
+    // --- RENDER FUNCTIONS ---
     function renderBinary(container, s) {
         if (!isBinaryInitialized) {
             container.innerHTML = '';
@@ -415,7 +363,6 @@
             container.appendChild(wrapper);
             isBinaryInitialized = true;
         }
-
         const setArr = (id, idx) => {
             const el = document.getElementById(id);
             const t = document.getElementById(`bin-box-${idx}`);
@@ -435,7 +382,7 @@
         const roots = s.nodes.filter(n => n.active === 1).sort((a,b) => a.freq - b.freq);
         container.innerHTML = '';
         const wrapper = document.createElement('div');
-        wrapper.style.display = 'flex'; wrapper.style.flexWrap = 'wrap'; wrapper.style.justifyContent = 'center'; wrapper.style.gap = '30px'; wrapper.style.width = '100%'; wrapper.style.transformOrigin = 'top center';
+        wrapper.style.display = 'flex'; wrapper.style.flexWrap = 'wrap'; wrapper.style.justifyContent = 'center'; wrapper.style.gap = '30px'; wrapper.style.width = '100%';
 
         // Tree
         const treeArea = document.createElement('div'); treeArea.className = 'tree';
@@ -445,11 +392,7 @@
             const li = document.createElement('li');
             const isLeaf = (n.left === -1 && n.right === -1);
             let codeDisplay = (isLeaf && n.code) ? `<div style="font-size:0.75em; color:#dc3545; font-weight:bold; margin-top:-5px">${n.code}</div>` : '';
-            li.innerHTML = `<a href="#" class="node-card ${isLeaf ? 'leaf' : 'internal'} ${n.is_new ? 'new' : ''}">
-                                <span class="${isLeaf ? 'node-val' : 'node-char'}">${n.name}</span>
-                                <span class="${isLeaf ? 'node-char' : 'node-val'}">${n.freq}</span>
-                                ${codeDisplay}
-                            </a>`;
+            li.innerHTML = `<a href="#" class="node-card ${isLeaf ? 'leaf' : 'internal'} ${n.is_new ? 'new' : ''}"><span class="${isLeaf ? 'node-val' : 'node-char'}">${n.name}</span><span class="${isLeaf ? 'node-char' : 'node-val'}">${n.freq}</span>${codeDisplay}</a>`;
             if (!isLeaf) {
                 const sub = document.createElement('ul');
                 if (n.left !== -1) sub.appendChild(create(n.left));
@@ -462,138 +405,142 @@
         treeArea.appendChild(ul);
         wrapper.appendChild(treeArea);
 
-        // Table
+        // Table logic (giữ nguyên)
         const leaves = s.nodes.filter(n => n.left === -1 && n.right === -1 && n.code && n.code !== "");
         if (leaves.length > 0) {
+            // ... (Phần logic bảng Huffman giống cũ, không đổi) ...
             let payloadBits = 0; let totalChars = 0;
-            leaves.forEach(l => { bits = l.freq * l.code.length; payloadBits += bits; totalChars += l.freq; });
-            let headerOverhead = leaves.length * 16; let totalCompressedSize = payloadBits + headerOverhead; let originalBits = totalChars * 8;
-            let isBloated = totalCompressedSize > originalBits; let diff = Math.abs(originalBits - totalCompressedSize); let ratio = originalBits > 0 ? ((diff / originalBits) * 100).toFixed(1) : 0;
-
-            const tableArea = document.createElement('div'); tableArea.style.minWidth = '350px';
-            tableArea.innerHTML = `
-                <div class="card shadow-sm ${isBloated ? 'border-danger' : 'border-success'}">
-                    <div class="card-header ${isBloated ? 'bg-danger' : 'bg-success'} text-white fw-bold text-center">${isBloated ? 'CẢNH BÁO: Dữ liệu phình to!' : 'Hiệu Quả Nén'}</div>
-                    <div class="card-body p-0">
-                        <table class="table table-striped mb-0 text-center"><thead class="table-light"><tr><th>Ký tự</th><th>Tần suất</th><th>Mã Bit</th></tr></thead>
-                            <tbody>${leaves.map(l => `<tr><td class="fw-bold">${l.name}</td><td>${l.freq}</td><td class="text-danger font-monospace">${l.code}</td></tr>`).join('')}</tbody>
-                        </table>
-                    </div>
-                    <div class="card-footer bg-light p-3">
-                        <div class="d-flex justify-content-between mb-1"><span class="text-muted">Gốc (ASCII 8-bit):</span><span class="fw-bold">${totalChars} × 8 = ${originalBits} bits</span></div>
-                        <div class="d-flex justify-content-between mb-1"><span class="text-muted">Payload:</span><span>${payloadBits} bits</span></div>
-                        <div class="d-flex justify-content-between mb-2 pt-2 border-top"><span class="fw-bold">Tổng sau nén:</span><span class="fw-bold ${isBloated ? 'text-danger' : 'text-success'}">${totalCompressedSize} bits</span></div>
-                        ${isBloated ? `<div class="alert alert-danger py-1 text-center small mb-0">Tăng thêm ${ratio}%</div>` : `<div class="progress" style="height: 25px;"><div class="progress-bar bg-success" style="width: ${ratio}%">Tiết kiệm ${ratio}%</div></div>`}
-                    </div>
-                </div>`;
+            leaves.forEach(l => { payloadBits += l.freq * l.code.length; totalChars += l.freq; });
+            let headerOverhead = leaves.length * 16; let totalCompressed = payloadBits + headerOverhead; let original = totalChars * 8;
+            let ratio = original > 0 ? (Math.abs(original - totalCompressed) / original * 100).toFixed(1) : 0;
+            const tableArea = document.createElement('div'); tableArea.style.minWidth = '300px';
+            tableArea.innerHTML = `<div class="card shadow-sm border-success"><div class="card-header bg-success text-white fw-bold">Hiệu Quả Nén</div><div class="card-body p-0"><table class="table table-striped mb-0 text-center"><thead class="table-light"><tr><th>Ký tự</th><th>Mã Bit</th></tr></thead><tbody>${leaves.map(l => `<tr><td>${l.name}</td><td class="font-monospace">${l.code}</td></tr>`).join('')}</tbody></table></div><div class="card-footer bg-light text-center fw-bold text-success">Tiết kiệm ${ratio}%</div></div>`;
             wrapper.appendChild(tableArea);
         }
         container.appendChild(wrapper);
     }
 
-    function renderFloyd(container, s) {
-    container.innerHTML = '';
-    const layout = document.createElement('div'); layout.className = 'floyd-view';
-    const toChar = (n) => String.fromCharCode(65 + n);
-
-    // --- LEFT PANEL: MA TRẬN ---
-    const leftPanel = document.createElement('div'); leftPanel.className = 'floyd-left';
-    const tbl = document.createElement('table'); tbl.className = 'floyd-table';
+    // --- FLOYD INTERACTIVE FUNCTIONS ---
+    function setViewMode(mode) {
+        viewMode = mode;
+        render(); 
+    }
     
-    let h = '<thead><tr><th></th>'; 
-    for(let k=0; k<s.matrix.length; k++) h += `<th class="${s.k===k?'cell-k':''}">${toChar(k)}</th>`;
-    tbl.innerHTML = h + '</tr></thead><tbody>';
-    
-    s.matrix.forEach((row, r) => {
-        const tr = document.createElement('tr'); 
-        tr.innerHTML = `<th class="${s.k===r?'cell-k':''}">${toChar(r)}</th>`;
-        
-        row.forEach((v, c) => {
-            const td = document.createElement('td'); 
-            const valStr = (v >= 999) ? '∞' : v;
-            td.innerText = valStr;
-
-            // Chỉ tô màu nếu đây là bước tính toán (i != -1)
-            if (s.k !== -1 && s.i !== -1 && r === s.i && s.attempts && s.attempts[c] !== -1) {
-                if (s.updates && s.updates[c] === 1) td.className = 'cell-update'; // Xanh
-                else td.className = 'cell-fail';   // Xám
-            }
-
-            if (s.k !== -1) {
-                if (r === s.k || c === s.k) td.classList.add('cell-k'); 
-            }
-            tr.appendChild(td);
-        });
-        tbl.appendChild(tr);
-    });
-    leftPanel.appendChild(tbl);
-
-    // --- RIGHT PANEL: BẢNG GIẢI THÍCH ---
-    const rightPanel = document.createElement('div'); rightPanel.className = 'floyd-right';
-    
-    // SỬA LỖI TẠI ĐÂY: Thêm điều kiện s.i === -1
-    if (s.k === -1 || s.i === -1) { 
-        let title = (s.k === -1) ? "Khởi tạo" : "Hoàn tất";
-        // Nếu là bước hoàn tất, k có thể bằng N (ví dụ D), ta không cần hiển thị K ở tiêu đề
-        if (s.i === -1 && s.k !== -1) title = "Kết quả cuối cùng";
-
-        rightPanel.innerHTML = `<div class="logic-card"><div class="logic-title">${title}</div><p>${s.msg}</p></div>`;
-    } else {
-        // --- Logic hiển thị tính toán (Phần này giữ nguyên) ---
-        let detailsHTML = '<div class="calc-list">';
-        let hasDetail = false;
-
-        s.attempts.forEach((attemptVal, c) => {
-            if (c === s.i || c === s.k || attemptVal === -1) return;
-
-            hasDetail = true;
-            const targetChar = toChar(c);
-            const oldVal = s.matrix[s.i][c];
-            const oldStr = (oldVal >= 999) ? '∞' : oldVal;
-            const newStr = (attemptVal >= 999) ? '∞' : attemptVal;
-            const kVal_ik = s.matrix[s.i][s.k] >= 999 ? '∞' : s.matrix[s.i][s.k]; 
-            const kVal_kj = s.matrix[s.k][c] >= 999 ? '∞' : s.matrix[s.k][c];     
-
-            const isUpdate = (s.updates && s.updates[c] === 1);
-            
-            if (isUpdate) {
-                detailsHTML += `
-                <div class="calc-item calc-success">
-                    <div>
-                        <strong>Đến ${targetChar}:</strong> <span class="math-bold">${oldStr} > ${newStr}</span>
-                        <div style="font-size: 0.8em">Qua ${toChar(s.k)}: ${kVal_ik} + ${kVal_kj} = ${newStr}</div>
-                    </div>
-                    <span class="badge bg-success">Cập nhật</span>
-                </div>`;
-            } else {
-                detailsHTML += `
-                <div class="calc-item calc-fail">
-                    <div>
-                        <strong>Đến ${targetChar}:</strong> <span class="math-bold">${oldStr} ≤ ${newStr}</span>
-                        <div style="font-size: 0.8em">Giữ đường cũ</div>
-                    </div>
-                    <span class="badge bg-secondary">Bỏ qua</span>
-                </div>`;
-            }
-        });
-        detailsHTML += '</div>';
-
-        if (!hasDetail) detailsHTML = '<div class="alert alert-warning">Không có đường đi nào qua K để xét.</div>';
-
-        rightPanel.innerHTML = `
-            <div class="logic-card" style="text-align: left;">
-                <div class="logic-title">Đỉnh trung gian K = ${toChar(s.k)}</div>
-                <div class="mb-2">Đang xét hàng: <b>${toChar(s.i)}</b> đi đến các đỉnh khác:</div>
-                ${detailsHTML}
-                <div class="mt-2 text-muted small fst-italic">
-                    *Công thức: min(Cũ, i→K + K→Đích)
-                </div>
-            </div>`;
+    function highlightCells(i, j, k) {
+        // Tô màu các ô toán hạng
+        let cell_ik = document.querySelector(`.floyd-table tr:nth-child(${i+2}) td:nth-child(${k+2})`);
+        let cell_kj = document.querySelector(`.floyd-table tr:nth-child(${k+2}) td:nth-child(${j+2})`);
+        let cell_target = document.querySelector(`.floyd-table tr:nth-child(${i+2}) td:nth-child(${j+2})`);
+        if(cell_ik) cell_ik.classList.add('highlight-operand');
+        if(cell_kj) cell_kj.classList.add('highlight-operand');
+        if(cell_target) cell_target.classList.add('highlight-target-hover');
     }
 
-    layout.appendChild(leftPanel); layout.appendChild(rightPanel);
-    container.appendChild(layout);
-}
+    function clearHighlight() {
+        document.querySelectorAll('.highlight-operand').forEach(el => el.classList.remove('highlight-operand'));
+        document.querySelectorAll('.highlight-target-hover').forEach(el => el.classList.remove('highlight-target-hover'));
+    }
+
+    function renderFloyd(container, s) {
+        container.innerHTML = '';
+        const layout = document.createElement('div'); layout.className = 'floyd-view';
+        const toChar = (n) => String.fromCharCode(65 + n);
+
+        // --- CỘT 1: MA TRẬN BAN ĐẦU ---
+        const initPanel = document.createElement('div');
+        initPanel.className = 'floyd-left me-3'; 
+        initPanel.style.maxWidth = '250px'; 
+        
+        let initHTML = `<div class="matrix-card"><h6>Ma trận gốc</h6>`;
+        if (initialMatrixData) {
+            initHTML += `<table class="mini-table"><thead><tr><th></th>`;
+            initialMatrixData.forEach((_, k) => initHTML += `<th>${toChar(k)}</th>`);
+            initHTML += `</tr></thead><tbody>`;
+            initialMatrixData.forEach((row, r) => {
+                initHTML += `<tr><th>${toChar(r)}</th>`;
+                row.forEach(v => initHTML += `<td>${v>=999?'∞':v}</td>`);
+                initHTML += `</tr>`;
+            });
+            initHTML += `</tbody></table>`;
+        } else { initHTML += `<div class="small text-muted">Chưa có dữ liệu</div>`; }
+        initHTML += `</div>`;
+        
+        initHTML += `<div class="matrix-card"><h6>Chế độ xem</h6><div class="d-grid gap-2"><button class="btn btn-sm ${viewMode==='dist'?'btn-primary':'btn-outline-primary'}" onclick="setViewMode('dist')">📏 Khoảng cách</button><button class="btn btn-sm ${viewMode==='path'?'btn-success':'btn-outline-success'}" onclick="setViewMode('path')">🗺️ Lộ trình (Next)</button></div></div>`;
+        initPanel.innerHTML = initHTML;
+
+        // --- CỘT 2: MA TRẬN THỰC THI ---
+        const mainPanel = document.createElement('div'); mainPanel.className = 'floyd-left';
+        const tbl = document.createElement('table'); tbl.className = 'floyd-table';
+        
+        let h = '<thead><tr><th></th>'; 
+        for(let k=0; k<s.matrix.length; k++) h += `<th class="${s.k===k?'cell-pivot':''}">${toChar(k)}</th>`;
+        tbl.innerHTML = h + '</tr></thead><tbody>';
+        
+        s.matrix.forEach((row, r) => {
+            const tr = document.createElement('tr'); 
+            tr.innerHTML = `<th class="${s.k===r?'cell-pivot':''}">${toChar(r)}</th>`;
+            row.forEach((v, c) => {
+                const td = document.createElement('td'); 
+                
+                // Logic hiển thị dữ liệu
+                if (viewMode === 'dist') {
+                    td.innerText = (v >= 999) ? '∞' : v;
+                } else {
+                    const nextVal = (s.next_matrix) ? s.next_matrix[r][c] : -1;
+                    td.innerText = (nextVal === -1) ? '-' : toChar(nextVal);
+                    td.style.fontWeight = 'bold';
+                    if (viewMode === 'path') td.style.color = '#198754';
+                }
+
+                // Logic tô màu
+                if (s.k !== -1 && s.i !== -1 && r === s.i && s.attempts && s.attempts[c] !== -1) {
+                    if (s.updates && s.updates[c] === 1) td.className = 'cell-update';
+                    else td.className = 'cell-fail';
+                }
+                // Highlight Trục K
+                if (s.k !== -1) { if (r === s.k || c === s.k) td.classList.add('cell-pivot'); }
+                tr.appendChild(td);
+            });
+            tbl.appendChild(tr);
+        });
+        mainPanel.appendChild(tbl);
+
+        // --- CỘT 3: BẢNG GIẢI THÍCH ---
+        const rightPanel = document.createElement('div'); rightPanel.className = 'floyd-right';
+        if (s.k === -1 || s.i === -1) { 
+            let title = (s.k === -1) ? "Khởi tạo" : "Hoàn tất";
+            if (s.i === -1 && s.k !== -1) title = "Kết quả cuối cùng";
+            rightPanel.innerHTML = `<div class="logic-card"><div class="logic-title">${title}</div><p>${s.msg}</p></div>`;
+        } else {
+            let detailsHTML = '<div class="calc-list">';
+            let hasDetail = false;
+            s.attempts.forEach((attemptVal, c) => {
+                if (c === s.i || c === s.k || attemptVal === -1) return;
+                hasDetail = true;
+                const isUpdate = (s.updates && s.updates[c] === 1);
+                const targetChar = toChar(c);
+                const oldVal = s.matrix[s.i][c]; const oldStr = (oldVal >= 999) ? '∞' : oldVal;
+                const newStr = (attemptVal >= 999) ? '∞' : attemptVal;
+                const kVal_ik = s.matrix[s.i][s.k] >= 999 ? '∞' : s.matrix[s.i][s.k]; 
+                const kVal_kj = s.matrix[s.k][c] >= 999 ? '∞' : s.matrix[s.k][c];     
+
+                // Thêm sự kiện Hover vào từng item
+                const hoverScript = `onmouseenter="highlightCells(${s.i}, ${c}, ${s.k})" onmouseleave="clearHighlight()"`;
+
+                if (isUpdate) {
+                    detailsHTML += `<div class="calc-item calc-success" ${hoverScript}><div><strong>Đến ${targetChar}:</strong> <span class="math-bold">${oldStr} > ${newStr}</span><div style="font-size: 0.8em">Qua ${toChar(s.k)}: ${kVal_ik} + ${kVal_kj}</div></div><span class="badge bg-success">Cập nhật</span></div>`;
+                } else {
+                    detailsHTML += `<div class="calc-item calc-fail" ${hoverScript}><div><strong>Đến ${targetChar}:</strong> <span class="math-bold">${oldStr} ≤ ${newStr}</span><div style="font-size: 0.8em">Giữ cũ</div></div><span class="badge bg-secondary">Bỏ qua</span></div>`;
+                }
+            });
+            detailsHTML += '</div>';
+            if (!hasDetail) detailsHTML = '<div class="alert alert-warning">Không có đường đi nào qua K để xét.</div>';
+            rightPanel.innerHTML = `<div class="logic-card" style="text-align: left;"><div class="logic-title">Đỉnh K = ${toChar(s.k)}</div><div class="mb-2">Xét hàng: <b>${toChar(s.i)}</b></div>${detailsHTML}</div>`;
+        }
+
+        layout.appendChild(initPanel); layout.appendChild(mainPanel); layout.appendChild(rightPanel);
+        container.appendChild(layout);
+    }
 
     function nextStep() { if (currentStep < steps.length - 1) { currentStep++; render(); } }
     function prevStep() { if (currentStep > 0) { currentStep--; render(); } }
