@@ -457,10 +457,28 @@
     }
     
     function highlightCells(i, j, k) {
-        // Tô màu các ô toán hạng
-        let cell_ik = document.querySelector(`.floyd-table tr:nth-child(${i+2}) td:nth-child(${k+2})`);
-        let cell_kj = document.querySelector(`.floyd-table tr:nth-child(${k+2}) td:nth-child(${j+2})`);
-        let cell_target = document.querySelector(`.floyd-table tr:nth-child(${i+2}) td:nth-child(${j+2})`);
+        // SỬA LỖI: Chọn chính xác thẻ tbody để đếm dòng, tránh bị lệch do thead
+        let tbody = document.querySelector('.floyd-table tbody');
+        if (!tbody) return;
+
+        // Trong tbody: Row A là con thứ 1, Row B là con thứ 2... -> Công thức: i + 1
+        let row_i = tbody.querySelector(`tr:nth-child(${i+1})`);
+        let row_k = tbody.querySelector(`tr:nth-child(${k+1})`);
+
+        // Tìm ô (td):
+        // Trong mỗi dòng (tr), ô đầu tiên là <th> (tiêu đề hàng), nên dữ liệu bắt đầu từ con thứ 2.
+        // Col A (index 0) -> nth-child(2). -> Công thức: j + 2
+        
+        // 1. Ô toán hạng 1 (Từ i đến k)
+        let cell_ik = row_i ? row_i.querySelector(`td:nth-child(${k+2})`) : null;
+        
+        // 2. Ô toán hạng 2 (Từ k đến j)
+        let cell_kj = row_k ? row_k.querySelector(`td:nth-child(${j+2})`) : null;
+        
+        // 3. Ô đích (Từ i đến j)
+        let cell_target = row_i ? row_i.querySelector(`td:nth-child(${j+2})`) : null;
+
+        // Áp dụng class highlight
         if(cell_ik) cell_ik.classList.add('highlight-operand');
         if(cell_kj) cell_kj.classList.add('highlight-operand');
         if(cell_target) cell_target.classList.add('highlight-target-hover');
