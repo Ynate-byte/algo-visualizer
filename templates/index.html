@@ -456,8 +456,9 @@
         render(); 
     }
     
+    // HÀM HOVER MỚI (ĐÃ FIX LỖI NTH-CHILD)
     function highlightCells(i, j, k) {
-        // SỬA LỖI: Chọn chính xác thẻ tbody để đếm dòng, tránh bị lệch do thead
+        // Chọn chính xác tbody để đếm dòng
         let tbody = document.querySelector('.floyd-table tbody');
         if (!tbody) return;
 
@@ -465,9 +466,8 @@
         let row_i = tbody.querySelector(`tr:nth-child(${i+1})`);
         let row_k = tbody.querySelector(`tr:nth-child(${k+1})`);
 
-        // Tìm ô (td):
-        // Trong mỗi dòng (tr), ô đầu tiên là <th> (tiêu đề hàng), nên dữ liệu bắt đầu từ con thứ 2.
-        // Col A (index 0) -> nth-child(2). -> Công thức: j + 2
+        // Tìm ô (td) trong dòng:
+        // Cột A (index 0) -> nth-child(2) vì ô đầu tiên là <th>. -> Công thức: j + 2
         
         // 1. Ô toán hạng 1 (Từ i đến k)
         let cell_ik = row_i ? row_i.querySelector(`td:nth-child(${k+2})`) : null;
