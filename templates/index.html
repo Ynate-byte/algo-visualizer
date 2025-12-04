@@ -496,7 +496,7 @@
     const layout = document.createElement('div'); layout.className = 'floyd-view';
     const toChar = (n) => String.fromCharCode(65 + n);
 
-    // --- LEFT PANEL: MA TRẬN (Giữ sạch, chỉ tô màu) ---
+    // --- LEFT PANEL: MA TRẬN ---
     const leftPanel = document.createElement('div'); leftPanel.className = 'floyd-left';
     const tbl = document.createElement('table'); tbl.className = 'floyd-table';
     
@@ -511,21 +511,16 @@
         row.forEach((v, c) => {
             const td = document.createElement('td'); 
             const valStr = (v >= 999) ? '∞' : v;
-            
-            // Chỉ hiển thị số, không chèn chữ nhỏ li ti nữa
             td.innerText = valStr;
 
-            // Tô màu nền để báo hiệu trạng thái
-            if (s.k !== -1 && r === s.i && s.attempts && s.attempts[c] !== -1) {
-                if (s.updates && s.updates[c] === 1) {
-                    td.className = 'cell-update'; // Màu xanh
-                } else {
-                    td.className = 'cell-fail';   // Màu xám
-                }
+            // Chỉ tô màu nếu đây là bước tính toán (i != -1)
+            if (s.k !== -1 && s.i !== -1 && r === s.i && s.attempts && s.attempts[c] !== -1) {
+                if (s.updates && s.updates[c] === 1) td.className = 'cell-update'; // Xanh
+                else td.className = 'cell-fail';   // Xám
             }
 
             if (s.k !== -1) {
-                if (r === s.k || c === s.k) td.classList.add('cell-k'); // Highlight trục K
+                if (r === s.k || c === s.k) td.classList.add('cell-k'); 
             }
             tr.appendChild(td);
         });
@@ -533,51 +528,51 @@
     });
     leftPanel.appendChild(tbl);
 
-    // --- RIGHT PANEL: BẢNG GIẢI THÍCH CHI TIẾT (To rõ) ---
+    // --- RIGHT PANEL: BẢNG GIẢI THÍCH ---
     const rightPanel = document.createElement('div'); rightPanel.className = 'floyd-right';
     
-    if (s.k === -1) {
-        rightPanel.innerHTML = `<div class="logic-card"><div class="logic-title">Khởi tạo</div><p>${s.msg}</p></div>`;
+    // SỬA LỖI TẠI ĐÂY: Thêm điều kiện s.i === -1
+    if (s.k === -1 || s.i === -1) { 
+        let title = (s.k === -1) ? "Khởi tạo" : "Hoàn tất";
+        // Nếu là bước hoàn tất, k có thể bằng N (ví dụ D), ta không cần hiển thị K ở tiêu đề
+        if (s.i === -1 && s.k !== -1) title = "Kết quả cuối cùng";
+
+        rightPanel.innerHTML = `<div class="logic-card"><div class="logic-title">${title}</div><p>${s.msg}</p></div>`;
     } else {
-        // Tạo danh sách các phép tính
+        // --- Logic hiển thị tính toán (Phần này giữ nguyên) ---
         let detailsHTML = '<div class="calc-list">';
         let hasDetail = false;
 
-        // Duyệt qua từng cột để tạo dòng giải thích
         s.attempts.forEach((attemptVal, c) => {
-            // Bỏ qua chính nó, bỏ qua đỉnh K, và bỏ qua nếu không tính toán được (-1)
             if (c === s.i || c === s.k || attemptVal === -1) return;
 
             hasDetail = true;
             const targetChar = toChar(c);
-            const oldVal = s.matrix[s.i][c]; // Giá trị cũ trong ma trận
+            const oldVal = s.matrix[s.i][c];
             const oldStr = (oldVal >= 999) ? '∞' : oldVal;
             const newStr = (attemptVal >= 999) ? '∞' : attemptVal;
-            const kVal_ik = s.matrix[s.i][s.k] >= 999 ? '∞' : s.matrix[s.i][s.k]; // i -> k
-            const kVal_kj = s.matrix[s.k][c] >= 999 ? '∞' : s.matrix[s.k][c];     // k -> j (j chính là c)
+            const kVal_ik = s.matrix[s.i][s.k] >= 999 ? '∞' : s.matrix[s.i][s.k]; 
+            const kVal_kj = s.matrix[s.k][c] >= 999 ? '∞' : s.matrix[s.k][c];     
 
-            // Kiểm tra xem có update không
             const isUpdate = (s.updates && s.updates[c] === 1);
             
             if (isUpdate) {
-                // Dòng màu xanh (Thành công)
                 detailsHTML += `
                 <div class="calc-item calc-success">
                     <div>
                         <strong>Đến ${targetChar}:</strong> <span class="math-bold">${oldStr} > ${newStr}</span>
-                        <div style="font-size: 0.8em">Qua K: ${kVal_ik} + ${kVal_kj} = ${newStr}</div>
+                        <div style="font-size: 0.8em">Qua ${toChar(s.k)}: ${kVal_ik} + ${kVal_kj} = ${newStr}</div>
                     </div>
-                    <span class="badge bg-success">Update</span>
+                    <span class="badge bg-success">Cập nhật</span>
                 </div>`;
             } else {
-                // Dòng màu xám (Thất bại - Giữ nguyên)
                 detailsHTML += `
                 <div class="calc-item calc-fail">
                     <div>
                         <strong>Đến ${targetChar}:</strong> <span class="math-bold">${oldStr} ≤ ${newStr}</span>
                         <div style="font-size: 0.8em">Giữ đường cũ</div>
                     </div>
-                    <span class="badge bg-secondary">Giữ cũ</span>
+                    <span class="badge bg-secondary">Bỏ qua</span>
                 </div>`;
             }
         });
@@ -589,9 +584,7 @@
             <div class="logic-card" style="text-align: left;">
                 <div class="logic-title">Đỉnh trung gian K = ${toChar(s.k)}</div>
                 <div class="mb-2">Đang xét hàng: <b>${toChar(s.i)}</b> đi đến các đỉnh khác:</div>
-                
                 ${detailsHTML}
-                
                 <div class="mt-2 text-muted small fst-italic">
                     *Công thức: min(Cũ, i→K + K→Đích)
                 </div>
