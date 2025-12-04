@@ -145,11 +145,13 @@
         <div id="input-huffman" class="input-panel text-center">
             <h5 class="mb-3 text-success">Huffman Coding</h5>
             <div class="mb-3">
-                <label>Nhập chuỗi hoặc chọn file txt:</label>
+                <label>Nhập văn bản hoặc chọn file txt:</label>
                 <div class="input-group w-50 mx-auto mb-2">
                     <input type="file" class="form-control" id="huff-file-input" accept=".txt">
                 </div>
-                <input type="text" id="huff-str" class="form-control text-center w-50 mx-auto fw-bold" value="ABACABAD">
+                <textarea id="huff-str" class="form-control mx-auto fw-bold text-secondary" 
+                          rows="4" style="width: 80%; min-height: 100px;">ABACABAD</textarea>
+                <div class="small text-muted mt-1">Hệ thống sẽ tự động tính tần suất ký tự.</div>
             </div>
             <button class="btn btn-success px-4 fw-bold" onclick="runAlgo('huffman')">▶ XÂY DỰNG CÂY</button>
         </div>
