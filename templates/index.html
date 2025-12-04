@@ -520,9 +520,17 @@
         const mainPanel = document.createElement('div'); mainPanel.className = 'floyd-left';
         const tbl = document.createElement('table'); tbl.className = 'floyd-table';
         
+        // 1. Tạo THEAD
         let h = '<thead><tr><th></th>'; 
         for(let k=0; k<s.matrix.length; k++) h += `<th class="${s.k===k?'cell-pivot':''}">${toChar(k)}</th>`;
-        tbl.innerHTML = h + '</tr></thead><tbody>';
+        h += '</tr></thead>';
+        
+        // 2. Tạo TBODY (SỬA LỖI QUAN TRỌNG: Tạo tbody rõ ràng)
+        h += '<tbody></tbody>';
+        tbl.innerHTML = h;
+        
+        // Lấy thẻ tbody vừa tạo ra để gắn row vào đó
+        const tbody = tbl.querySelector('tbody');
         
         s.matrix.forEach((row, r) => {
             const tr = document.createElement('tr'); 
@@ -530,7 +538,7 @@
             row.forEach((v, c) => {
                 const td = document.createElement('td'); 
                 
-                // Logic hiển thị dữ liệu (Dist vs Path)
+                // Logic hiển thị dữ liệu
                 if (viewMode === 'dist') {
                     td.innerText = (v >= 999) ? '∞' : v;
                 } else {
@@ -549,14 +557,14 @@
                 if (s.k !== -1) { if (r === s.k || c === s.k) td.classList.add('cell-pivot'); }
                 tr.appendChild(td);
             });
-            tbl.appendChild(tr);
+            // QUAN TRỌNG: Gắn dòng vào TBODY chứ không phải TABLE
+            tbody.appendChild(tr);
         });
         mainPanel.appendChild(tbl);
 
         // --- CỘT 3: BẢNG GIẢI THÍCH (HOVER INTERACTIVE) ---
         const rightPanel = document.createElement('div'); rightPanel.className = 'floyd-right';
         
-        // Fix lỗi hiển thị bước Hoàn tất
         if (s.k === -1 || s.i === -1) { 
             let title = (s.k === -1) ? "Khởi tạo" : "Hoàn tất";
             if (s.i === -1 && s.k !== -1) title = "Kết quả cuối cùng";
@@ -574,7 +582,6 @@
                 const kVal_ik = s.matrix[s.i][s.k] >= 999 ? '∞' : s.matrix[s.i][s.k]; 
                 const kVal_kj = s.matrix[s.k][c] >= 999 ? '∞' : s.matrix[s.k][c];     
 
-                // Thêm sự kiện Hover vào từng item để highlight bên trái
                 const hoverScript = `onmouseenter="highlightCells(${s.i}, ${c}, ${s.k})" onmouseleave="clearHighlight()"`;
 
                 if (isUpdate) {
@@ -591,7 +598,7 @@
         layout.appendChild(initPanel); layout.appendChild(mainPanel); layout.appendChild(rightPanel);
         container.appendChild(layout);
     }
-
+    
     function nextStep() { if (currentStep < steps.length - 1) { currentStep++; render(); } }
     function prevStep() { if (currentStep > 0) { currentStep--; render(); } }
     function toggleAuto() { if (autoInterval) { clearInterval(autoInterval); autoInterval = null; } else autoInterval = setInterval(nextStep, 1000); }
