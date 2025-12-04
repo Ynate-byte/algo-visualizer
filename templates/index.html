@@ -111,7 +111,31 @@
             margin: 15px 0; text-align: center; 
         }
         .highlight-k { color: #d63384; font-weight: bold; }
+        /* Thêm class cho giá trị so sánh (số nhỏ bên dưới) */
+        .sub-val {
+            display: block;
+            font-size: 0.65rem;
+            color: #6c757d;
+            margin-top: 2px;
+            font-style: italic;
+        }
 
+        /* Ô đang được xét nhưng KHÔNG update (so sánh thất bại) */
+        .cell-fail {
+            background-color: #f8f9fa !important; /* Màu xám nhạt */
+            border: 2px dashed #adb5bd !important;
+            opacity: 0.7;
+        }
+
+        /* Ô update thành công */
+        .cell-update {
+            background-color: #d1e7dd !important; /* Màu xanh lá nhạt */
+            border: 2px solid #198754 !important;
+            font-weight: bold;
+            color: #0f5132;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -426,82 +450,92 @@
     }
 
     function renderFloyd(container, s) {
-        container.innerHTML = '';
-        const layout = document.createElement('div'); layout.className = 'floyd-view';
-        const toChar = (n) => String.fromCharCode(65 + n);
+    container.innerHTML = '';
+    const layout = document.createElement('div'); layout.className = 'floyd-view';
+    const toChar = (n) => String.fromCharCode(65 + n);
 
-        // LEFT: Matrix
-        const leftPanel = document.createElement('div'); leftPanel.className = 'floyd-left';
-        const tbl = document.createElement('table'); tbl.className = 'floyd-table';
+    // LEFT: Matrix
+    const leftPanel = document.createElement('div'); leftPanel.className = 'floyd-left';
+    const tbl = document.createElement('table'); tbl.className = 'floyd-table';
+    
+    let h = '<thead><tr><th></th>'; 
+    for(let k=0; k<s.matrix.length; k++) h += `<th class="${s.k===k?'cell-k':''}">${toChar(k)}</th>`;
+    tbl.innerHTML = h + '</tr></thead><tbody>';
+    
+    s.matrix.forEach((row, r) => {
+        const tr = document.createElement('tr'); 
+        tr.innerHTML = `<th class="${s.k===r?'cell-k':''}">${toChar(r)}</th>`;
         
-        let h = '<thead><tr><th></th>'; 
-        for(let k=0; k<s.matrix.length; k++) h += `<th class="${s.k===k?'cell-k':''}">${toChar(k)}</th>`;
-        tbl.innerHTML = h + '</tr></thead><tbody>';
-        
-        let val_ik = '?', val_kj = '?', val_ij = '?', val_sum = '?';
-
-        s.matrix.forEach((row, i) => {
-            const tr = document.createElement('tr'); 
-            tr.innerHTML = `<th class="${s.k===i?'cell-k':''}">${toChar(i)}</th>`;
+        row.forEach((v, c) => {
+            const td = document.createElement('td'); 
+            const valStr = (v >= 999) ? '∞' : v;
             
-            row.forEach((v, j) => {
-                const td = document.createElement('td'); 
-                // XỬ LÝ QUAN TRỌNG: Hiển thị 999 là ∞
-                const disp = (v >= 999) ? '∞' : v;
-                td.innerText = disp;
+            // Xây dựng nội dung ô
+            let cellContent = `<div>${valStr}</div>`;
+            
+            // LOGIC HIỂN THỊ MỚI
+            // Chỉ xử lý nếu đang xét hàng hiện tại (r == s.i) và có dữ liệu so sánh
+            if (s.k !== -1 && r === s.i && s.attempts && s.attempts[c] !== -1) {
                 
-                if (s.k !== -1) {
-                    if (i === s.k || j === s.k) td.classList.add('cell-k');
-                    if (i === s.i && j === s.k) { td.classList.add('cell-check'); val_ik = disp; }
-                    if (i === s.k && j === s.j) { td.classList.add('cell-check'); val_kj = disp; }
-                    if (i === s.i && j === s.j) { td.classList.add('cell-target'); val_ij = disp; }
+                const attemptVal = s.attempts[c];
+                const attemptStr = (attemptVal >= 999) ? '∞' : attemptVal;
+                
+                // Nếu được đánh dấu update -> Màu XANH
+                if (s.updates && s.updates[c] === 1) {
+                    td.className = 'cell-update';
+                    // Hiển thị giá trị cũ nhỏ ở dưới để thấy sự thay đổi
+                    cellContent = `<div>${attemptStr}</div><span class="sub-val">từ ${valStr}</span>`;
+                } 
+                // Nếu KHÔNG update (nhưng có tính toán) -> Viền XÁM (So sánh thất bại)
+                else {
+                    td.className = 'cell-fail';
+                    // Hiển thị giá trị tính toán được để chứng minh nó lớn hơn
+                    cellContent = `<div>${valStr}</div><span class="sub-val">vs ${attemptStr}</span>`;
                 }
-                if (i === s.high_i && j === s.high_j) { td.classList.add('cell-update'); val_ij = disp; }
-                tr.appendChild(td);
-            });
-            tbl.appendChild(tr).parentNode.appendChild(tr);
+            }
+
+            // Highlight cột K và hàng K
+            if (s.k !== -1) {
+                if (r === s.k || c === s.k) td.classList.add('cell-k');
+            }
+
+            td.innerHTML = cellContent;
+            tr.appendChild(td);
         });
-        leftPanel.appendChild(tbl);
+        tbl.appendChild(tr);
+    });
+    leftPanel.appendChild(tbl);
 
-        // RIGHT: Logic Explanation
-        const rightPanel = document.createElement('div'); rightPanel.className = 'floyd-right';
-        if (s.k === -1) {
-            rightPanel.innerHTML = `<div class="logic-card"><div class="logic-title">⚡ Khởi tạo</div><p>Ma trận khoảng cách ban đầu.</p><ul><li><b>0</b>: Đến chính nó.</li><li><b>∞</b>: Chưa có đường đi.</li></ul></div>`;
-        } else {
-            // Logic tính toán hiển thị (chỉ để minh họa, số thực sự đã tính ở Backend)
-            let sumDisp = '∞';
-            if (val_ik !== '∞' && val_kj !== '∞') {
-                sumDisp = parseInt(val_ik) + parseInt(val_kj);
-            }
-
-            let isUpdate = (s.high_i !== -1);
-            let oldValDisp = val_ij; 
-            
-            // Nếu đây là bước cập nhật, ta cần lấy giá trị cũ từ step trước đó để so sánh
-            if (isUpdate && currentStep > 0) {
-                 try {
-                     const prevRow = steps[currentStep - 1].matrix[s.i];
-                     const prevVal = prevRow[s.j];
-                     oldValDisp = (prevVal >= 999) ? '∞' : prevVal;
-                 } catch(e) {}
-            }
-
-            rightPanel.innerHTML = `
-                <div class="logic-card">
-                    <div class="logic-title">Giải thích Bước ${s.step}</div>
-                    <div class="logic-step">1. Đỉnh trung gian: <b class="highlight-k">K = ${toChar(s.k)}</b></div>
-                    <div class="logic-step">2. Tìm đường: <b>${toChar(s.i)} ➝ ${toChar(s.j)}</b></div>
-                    <div class="math-eq">min( ${oldValDisp}, <span class="highlight-k">${val_ik} + ${val_kj}</span> )</div>
-                    <div class="math-eq">= min( ${oldValDisp}, <span class="highlight-k">${sumDisp}</span> )</div>
-                    <div class="alert ${isUpdate ? 'alert-success' : 'alert-secondary'} mt-3 p-2 text-center small">
-                        ${isUpdate ? `<b>CẬP NHẬT!</b><br>Đường qua K (${sumDisp}) ngắn hơn.` : `<b>Giữ nguyên.</b><br>Đường cũ vẫn tốt hơn.`}
-                    </div>
-                </div>`;
-        }
-
-        layout.appendChild(leftPanel); layout.appendChild(rightPanel);
-        container.appendChild(layout);
+    // RIGHT: Logic Explanation (Đơn giản hóa vì thông tin đã hiện trên bảng)
+    const rightPanel = document.createElement('div'); rightPanel.className = 'floyd-right';
+    
+    if (s.k === -1) {
+        rightPanel.innerHTML = `<div class="logic-card"><div class="logic-title">Kết quả</div><p>${s.msg}</p></div>`;
+    } else {
+        // Đếm số lượng update
+        let upCount = s.updates ? s.updates.filter(x => x===1).length : 0;
+        
+        rightPanel.innerHTML = `
+            <div class="logic-card">
+                <div class="logic-title">Bước ${s.step}: Trung gian ${toChar(s.k)}</div>
+                <div class="logic-step">Đang xét toàn bộ hàng: <b>${toChar(s.i)}</b></div>
+                <div class="mt-3">
+                    <span class="badge bg-success me-2">${upCount} Cập nhật</span>
+                    <span class="badge bg-secondary text-light border">So sánh thất bại</span>
+                </div>
+                <div class="alert alert-info mt-3 small">
+                    <ul class="mb-0 ps-3">
+                        <li><b>Ô xanh:</b> Tìm thấy đường ngắn hơn qua ${toChar(s.k)}.</li>
+                        <li><b>Ô xám:</b> Đã thử đi qua ${toChar(s.k)} nhưng đường dài hơn (số nhỏ bên dưới).</li>
+                    </ul>
+                </div>
+                <p class="mt-2 fst-italic small text-muted">"${s.msg}"</p>
+            </div>`;
     }
+
+    layout.appendChild(leftPanel); layout.appendChild(rightPanel);
+    container.appendChild(layout);
+}
 
     function nextStep() { if (currentStep < steps.length - 1) { currentStep++; render(); } }
     function prevStep() { if (currentStep > 0) { currentStep--; render(); } }
