@@ -168,10 +168,21 @@
 
         <div id="input-floyd" class="input-panel text-center">
             <h5 class="mb-3 text-danger">Floyd-Warshall (Ngắn nhất mọi cặp đỉnh)</h5>
+            
             <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
                 <label class="fw-bold">Kích thước NxN:</label>
                 <input type="number" id="floyd-size" class="form-control text-center fw-bold" style="width: 70px;" value="4" min="3" max="8" onchange="generateFloyd()">
                 <button class="btn btn-warning text-white fw-bold" onclick="generateFloyd()">▶ Sinh Matrix</button>
+            </div>
+
+            <div class="mb-3 p-2 border border-dashed rounded bg-light" style="border-style: dashed !important; border-color: #adb5bd;">
+                <label class="small fw-bold text-muted mb-1">Hoặc tải file ma trận (.txt):</label>
+                <div class="input-group w-75 mx-auto">
+                    <input type="file" class="form-control" id="floyd-file-input" accept=".txt">
+                </div>
+                <div class="small text-muted fst-italic mt-1" style="font-size: 0.8rem;">
+                    Định dạng: Dòng 1 là N, các dòng sau là ma trận. (Dùng 999 cho vô cực)
+                </div>
             </div>
             <div class="mb-3 text-muted fst-italic small" id="floyd-preview">(Ma trận hiển thị tại đây)</div>
             <button class="btn btn-danger px-4 fw-bold" onclick="runAlgo('floyd')">▶ TÌM ĐƯỜNG</button>
@@ -240,6 +251,7 @@
 
     // --- INIT ---
     window.onload = function() {
+        // Init Huffman File Input
         const fileInput = document.getElementById('huff-file-input');
         if(fileInput) {
             fileInput.addEventListener('change', function(e) {
@@ -248,6 +260,25 @@
                 const reader = new FileReader();
                 reader.onload = function(e) { document.getElementById('huff-str').value = e.target.result.trim(); };
                 reader.readAsText(file);
+            });
+        }
+
+        // Init Floyd File Input (NEW)
+        const floydInput = document.getElementById('floyd-file-input');
+        if (floydInput) {
+            floydInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    processFloydFile(text);
+                };
+                reader.readAsText(file);
+                
+                // Reset value để có thể chọn lại cùng file
+                e.target.value = ''; 
             });
         }
     }
@@ -289,6 +320,58 @@
         }
         currentFloydMatrix = matrix.join(',');
         document.getElementById('floyd-preview').innerText = `Matrix ${size}x${size}: ` + currentFloydMatrix.substring(0, 40) + "...";
+        // Reset color in case it was red/green from file load
+        document.getElementById('floyd-preview').classList.remove('text-success', 'text-danger');
+        document.getElementById('floyd-preview').classList.add('text-muted');
+    }
+
+    // --- LOGIC XỬ LÝ FILE FLOYD MỚI ---
+    function processFloydFile(content) {
+        try {
+            // 1. Tách chuỗi thành mảng các token (bỏ qua khoảng trắng, xuống dòng)
+            const tokens = content.trim().split(/\s+/);
+            
+            if (tokens.length < 1) throw "File rỗng!";
+
+            // 2. Lấy kích thước N (token đầu tiên)
+            const size = parseInt(tokens[0]);
+            if (isNaN(size) || size < 2) throw "Kích thước N không hợp lệ (Dòng 1)";
+
+            // 3. Lấy dữ liệu ma trận
+            const matrixData = [];
+            // Bắt đầu từ 1 vì 0 là kích thước
+            if (tokens.length - 1 < size * size) throw `Thiếu dữ liệu: Cần ${size*size} số, chỉ tìm thấy ${tokens.length-1}`;
+
+            for (let i = 1; i <= size * size; i++) {
+                let valStr = tokens[i];
+                
+                // Xử lý các ký hiệu vô cực
+                if (valStr.toUpperCase() === 'INF' || valStr.toUpperCase() === '∞') {
+                    matrixData.push(999);
+                } else {
+                    let val = parseInt(valStr);
+                    if (isNaN(val)) throw `Giá trị không hợp lệ tại vị trí ${i}: "${valStr}"`;
+                    matrixData.push(val);
+                }
+            }
+
+            // 4. Cập nhật vào hệ thống
+            document.getElementById('floyd-size').value = size;
+            currentFloydMatrix = matrixData.join(','); // Chuyển thành chuỗi ngăn cách dấu phẩy cho Backend
+            
+            // 5. Hiển thị thông báo thành công
+            document.getElementById('floyd-preview').innerText = `Đã tải: Ma trận ${size}x${size} từ file.`;
+            document.getElementById('floyd-preview').classList.add('text-success');
+            document.getElementById('floyd-preview').classList.remove('text-muted');
+
+            alert(`Đã tải thành công ma trận ${size}x${size}! Nhấn 'TÌM ĐƯỜNG' để chạy.`);
+
+        } catch (err) {
+            alert("Lỗi đọc file: " + err);
+            document.getElementById('floyd-preview').innerText = "Lỗi file!";
+            document.getElementById('floyd-preview').classList.add('text-danger');
+            document.getElementById('floyd-preview').classList.remove('text-muted');
+        }
     }
 
     async function runAlgo(algo) {
@@ -580,7 +663,7 @@
                 const oldVal = s.matrix[s.i][c]; const oldStr = (oldVal >= 999) ? '∞' : oldVal;
                 const newStr = (attemptVal >= 999) ? '∞' : attemptVal;
                 const kVal_ik = s.matrix[s.i][s.k] >= 999 ? '∞' : s.matrix[s.i][s.k]; 
-                const kVal_kj = s.matrix[s.k][c] >= 999 ? '∞' : s.matrix[s.k][c];     
+                const kVal_kj = s.matrix[s.k][c] >= 999 ? '∞' : s.matrix[s.k][c];      
 
                 const hoverScript = `onmouseenter="highlightCells(${s.i}, ${c}, ${s.k})" onmouseleave="clearHighlight()"`;
 
